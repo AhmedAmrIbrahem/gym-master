@@ -1,0 +1,61 @@
+name: Quality checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, curl, pdo_sqlite, sqlite3, xml, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Validate Composer configuration
+        run: composer validate --no-check-publish
+
+      - name: Check PHP formatting
+        run: vendor/bin/pint --test
+
+      - name: Prepare Laravel environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Check PHP syntax
+        run: |
+          find app routes tests database/migrations -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Compile Blade views
+        run: php artisan view:cache
+
+      - name: Verify route registration
+        run: php artisan route:list --except-vendor
+
+      - name: Run automated tests
+        run: php artisan test
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend assets
+        run: npm run build
