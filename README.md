@@ -28,9 +28,19 @@
 1. **نسخ المستودع (Clone):**
    ```bash
    git clone [https://github.com/AhmedAmrIbrahem/gym-master.git](https://github.com/AhmedAmrIbrahem/gym-master.git)
-   cd gym-master (Clone):**
-
-   
-   ```bash
-   git clone [https://github.com/AhmedAmrIbrahem/gym-master.git](https://github.com/AhmedAmrIbrahem/gym-master.git)
    cd gym-master
+
+   composer install
+
+cp .env.example .env
+
+php artisan key:generate
+
+php artisan migrate
+
+php artisan serve
+
+👨‍💻 المطور
+Ahmed Amr
+
+GitHub: @AhmedAmrIbrahem
