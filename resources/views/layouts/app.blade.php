@@ -142,9 +142,11 @@
             </div>
             <!-- Logo -->
             <div class="h-16 flex items-center justify-center border-b border-gray-700 px-6">
-                <h1 class="text-xl font-extrabold text-blue-500 flex items-center gap-2">
+                <a href="{{ Auth::user()->isSuperAdmin() ? route('admin.dashboard') : route('dashboard') }}"
+                   aria-label="العودة إلى الصفحة الرئيسية" title="الصفحة الرئيسية"
+                   class="text-xl font-extrabold text-blue-500 flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 hover:opacity-80 transition">
                     <span>🏋️‍♂️</span> GYM DASHBOARD
-                </h1>
+                </a>
             </div>
 
             <!-- Navigation Links -->
@@ -237,10 +239,6 @@
                 <a href="{{ route('profile.edit') }}" class="w-8 h-8 rounded-lg overflow-hidden border border-blue-500">
                     <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}" class="w-full h-full object-cover">
                 </a>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="text-xs text-red-400">خروج</button>
-                </form>
             </div>
         </header>
 

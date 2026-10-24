@@ -106,9 +106,16 @@
             height: 100dvh !important;
         }
 
-        .gym-chat-panel {
-            border-radius: 0 !important;
-        }
+        .gym-chat-panel { border-radius: 0 !important; }
+        .gym-chat-messages { padding: 12px !important; }
+        .gym-chat-messages > div { width: 100%; min-width: 0; }
+        .gym-chat-messages .gym-chat-rich,
+        .gym-chat-messages .gym-chat-text { font-size: 13px; line-height: 1.85; overflow-wrap: anywhere; }
+        .gym-chat-messages .gym-chat-rich * { max-width: 100%; }
+        .gym-chat-messages .gym-chat-rich pre { overflow-x: auto; }
+        .gym-chat-window .p-4 { padding: 12px; }
+        .gym-chat-window header { min-width: 0; }
+        .gym-calorie-grid { grid-template-columns: minmax(0, 1fr); }
     }
 </style>
 
@@ -148,13 +155,10 @@
             x-show="!open"
             class="flex items-center justify-center w-full h-full p-2"
         >
-            <img
-                src="/images/bot.png"
-                alt="Gym Master Bot"
-                onerror="this.style.display='none'; this.nextElementSibling.style.display='inline'"
-                class="w-full h-full object-contain pointer-events-none"
-            >
-            <span style="display: none;" class="text-xl">🤖</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="text-white">
+                <rect x="4" y="7" width="16" height="13" rx="4" />
+                <path d="M12 3v4M9 3h6M4 12H2M22 12h-2M8 16h.01M16 16h.01M9 11h6" />
+            </svg>
         </span>
 
         <span

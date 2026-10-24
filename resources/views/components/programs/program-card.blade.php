@@ -1,6 +1,6 @@
 @props(['program', 'groupedExercises'])
 
-<div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl space-y-6" x-data="{ editProgram: false }">
+<div class="gym-program-card bg-gray-800 p-4 sm:p-6 rounded-2xl border border-gray-700 shadow-xl space-y-6" x-data="{ editProgram: false }">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-700 pb-4">
 
         <!-- عنوان النظام وتعديله -->

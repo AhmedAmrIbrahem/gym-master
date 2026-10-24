@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Mail\WelcomeUserMail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Mail\WelcomeUserMail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;

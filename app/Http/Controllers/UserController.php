@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
@@ -158,7 +159,7 @@ class UserController extends Controller
 
         $user->forceFill([
             'password' => Hash::make($validated['password']),
-            'remember_token' => \Illuminate\Support\Str::random(60),
+            'remember_token' => Str::random(60),
         ])->save();
 
         return back()

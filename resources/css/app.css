@@ -669,3 +669,57 @@ html[data-theme="light"] [role="alert"].bg-red-900\/50 {
 }
 html[data-theme="light"] [role="alert"].bg-red-950 *,
 html[data-theme="light"] [role="status"].bg-emerald-950 * { color: inherit !important; }
+
+/* UX & mobile finishing touches — light mode only */
+html[data-theme="light"] .gym-pagination nav { color:#334155; }
+html[data-theme="light"] .gym-pagination nav :is(span,a) { border-color:#d6e2f2 !important; }
+html[data-theme="light"] .gym-pagination nav a { color:#1d4ed8 !important; background:#fff !important; }
+html[data-theme="light"] .gym-pagination nav span[aria-current="page"] > span { background:#dbeafe !important; color:#1d4ed8 !important; }
+html[data-theme="light"] .gym-pagination nav span[aria-disabled="true"] > span { background:#f8fafc !important; color:#64748b !important; }
+html[data-theme="light"] .gym-exercise-popover { background:#fff !important; border-color:#cbd5e1 !important; box-shadow:0 16px 35px rgba(15,23,42,.12) !important; }
+html[data-theme="light"] .gym-exercise-option { color:#172033 !important; }
+html[data-theme="light"] .gym-exercise-option:hover { background:#eff6ff !important; color:#1d4ed8 !important; }
+html[data-theme="light"] .gym-exercise-trigger { background:#fff !important; color:#172033 !important; border-color:#cbd5e1 !important; }
+html[data-theme="light"] .gym-program-card { box-shadow:0 8px 25px rgba(15,23,42,.055) !important; }
+html[data-theme="light"] .gym-day-card { background:#f8fafc !important; border-color:#d7e2ef !important; }
+.gym-exercise-popover { min-width:0; }
+.gym-exercise-option:focus-visible { outline:2px solid #3b82f6; outline-offset:-2px; }
+@media (max-width:640px) {
+  .gym-exercise-popover { max-width:calc(100vw - 56px); }
+  .gym-program-card { padding:14px !important; }
+  .gym-program-card > .grid { grid-template-columns:minmax(0,1fr) !important; }
+  .gym-workout-history-table, .gym-workout-history-table tbody, .gym-workout-history-table tr, .gym-workout-history-table td { display:block; width:100%; min-width:0; }
+  .gym-workout-history-table thead { display:none; }
+  .gym-workout-history-table tr { padding:10px 0; border-bottom:1px solid #374151; }
+  .gym-workout-history-table td { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:7px 6px; min-width:0; }
+  .gym-workout-history-table td::before { content:attr(data-label); width:76px; flex:0 0 76px; font-size:11px; font-weight:700; color:#94a3b8; }
+  .gym-workout-history-table td > div { flex:1; min-width:0; }
+  html[data-theme="light"] .gym-workout-history-table tr { border-color:#d7e2ef; }
+  html[data-theme="light"] .gym-workout-history-table td::before { color:#52657d; }
+  .gym-pagination nav { max-width:100%; overflow-x:auto; }
+}
+
+
+/* Compact workout cards and readable exercise history on narrow phones */
+.gym-program-card > .grid { align-items: start; }
+.gym-day-card { min-height: 0; height: auto; }
+.gym-day-card > div:first-child { min-height: 0; }
+.gym-day-card ul { max-height: 25rem; overflow-y: auto; scrollbar-width: thin; }
+@media (min-width: 768px) {
+  .gym-program-card > .grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); }
+}
+@media (max-width: 640px) {
+  .mobile-content .gym-workout-history-table { display: block !important; width: 100% !important; min-width: 0 !important; table-layout: auto !important; }
+  .mobile-content .gym-workout-history-table thead { display: none !important; }
+  .mobile-content .gym-workout-history-table tbody { display: block !important; width: 100%; min-width: 0; }
+  .mobile-content .gym-workout-history-table tr { display: block !important; min-width: 0; width: 100%; border-bottom: 1px solid #475569; }
+  .mobile-content .gym-workout-history-table td { display: grid !important; grid-template-columns: 4.5rem minmax(0,1fr); gap: .6rem; width: 100%; min-width: 0 !important; padding: .7rem .35rem; white-space: normal !important; text-align: right; align-items: start; }
+  .mobile-content .gym-workout-history-table td::before { width: auto; min-width: 0; overflow-wrap: anywhere; }
+  .mobile-content .gym-workout-history-table td > div { min-width: 0; width: 100%; display: flex; flex-wrap: wrap; gap: .4rem; }
+  .mobile-content .gym-workout-history-table td > div > div { white-space: normal; min-width: 0; max-width: 100%; padding: .45rem .55rem; flex-wrap: wrap; }
+  .mobile-content .gym-workout-history-table td, .mobile-content .gym-workout-history-table td * { overflow-wrap: anywhere; }
+  .gym-program-card > .grid { grid-template-columns: minmax(0,1fr) !important; }
+  .gym-day-card ul { max-height: none; overflow: visible; }
+}
+html[data-theme="light"] .gym-day-card { background: #f8fbff !important; border-color: #d5e2f1 !important; }
+html[data-theme="light"] .gym-workout-history-table td::before { color: #52657d; }

@@ -124,20 +124,20 @@
                                 {{ $session->workoutDay->name ?? 'جلسة تمرين' }}
                             </span>
                             <h3 class="text-base font-bold text-white flex items-center gap-2">
-                                📅 {{ \Carbon\Carbon::parse($session->created_at)->locale('ar')->translatedFormat('l، d F Y') }}
+                                📅 {{ \Carbon\Carbon::parse($session->created_at)->timezone('Africa/Cairo')->locale('ar')->translatedFormat('l، d F Y') }}
                             </h3>
                         </div>
 
                         <div class="flex items-center gap-2 text-xs">
                             <span class="bg-gray-800 text-gray-300 border border-gray-700 px-3 py-1 rounded-xl">
-                                ⏰ {{ \Carbon\Carbon::parse($session->created_at)->format('h:i A') }}
+                                ⏰ {{ \Carbon\Carbon::parse($session->created_at)->timezone('Africa/Cairo')->format('h:i A') }}
                             </span>
                         </div>
                     </div>
 
                     <!-- جدول تفاصيل التمارين والمجموعات -->
                     <div class="p-4 overflow-x-auto">
-                        <table class="w-full text-right text-xs text-gray-300">
+                        <table class="gym-workout-history-table w-full text-right text-xs text-gray-300">
                             <thead class="bg-gray-900/40 text-gray-400 uppercase">
                             <tr>
                                 <th class="p-3 rounded-r-xl">التمرين</th>
@@ -153,13 +153,13 @@
                             @foreach($groupedLogs as $exerciseId => $logs)
                                 @php $exercise = $logs->first()->exercise; @endphp
                                 <tr class="hover:bg-gray-700/30 transition">
-                                    <td class="p-3 font-bold text-white text-sm">{{ $exercise->name ?? 'تمرين' }}</td>
-                                    <td class="p-3">
+                                    <td data-label="التمرين" class="p-3 font-bold text-white text-sm">{{ $exercise->name ?? 'تمرين' }}</td>
+                                    <td data-label="العضلة" class="p-3">
                                             <span class="bg-blue-950/60 text-blue-300 border border-blue-800 px-2.5 py-0.5 rounded-md">
                                                 {{ $exercise->target_muscle ?? '-' }}
                                             </span>
                                     </td>
-                                    <td class="p-3">
+                                    <td data-label="المجموعات والأوزان" class="p-3">
                                         <div class="flex flex-wrap gap-2">
                                             @foreach($logs as $log)
                                                 <div class="bg-gray-900 border border-gray-700/80 rounded-xl px-3 py-1.5 flex items-center gap-2 shadow-inner">

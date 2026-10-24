@@ -1,6 +1,6 @@
 @props(['day', 'groupedExercises'])
 
-<div class="bg-gray-900 p-4 rounded-xl border border-gray-700 space-y-3 flex flex-col justify-between" x-data="{ editDay: false }">
+<div class="gym-day-card bg-gray-900 p-4 rounded-xl border border-gray-700 space-y-3 flex flex-col justify-between" x-data="{ editDay: false }">
     <div>
         <!-- هيدر اليوم (تعديل + حذف) -->
         <div class="flex justify-between items-center border-b border-gray-800 pb-2 mb-3">

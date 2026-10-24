@@ -36,14 +36,18 @@
 
         <!-- جدول التمارين -->
         <x-ui.panel class="overflow-hidden">
-            <div class="p-4 border-b border-gray-700 flex justify-between items-center">
+            <div class="p-4 border-b border-gray-700 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
                 <h4 class="font-bold text-gray-300">قائمة التمارين المسجلة ({{ $exercises->total() }})</h4>
-                <form action="{{ route('exercises.index') }}" method="GET" class="w-64">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="بحث عن تمرين..." class="w-full bg-gray-900 border-gray-700 text-white text-xs rounded-xl">
+                <form action="{{ route('exercises.index') }}" method="GET" role="search" class="exercise-search-form flex w-full sm:w-auto gap-2">
+                    <input type="search" name="search" value="{{ request('search') }}" placeholder="ابحث بالاسم أو العضلة..." aria-label="البحث في التمارين" class="min-w-0 flex-1 sm:w-64 bg-gray-900 border-gray-700 text-white text-sm rounded-xl">
+                    <button type="submit" class="bg-blue-600 text-white rounded-xl px-4 py-2 text-sm font-bold">بحث</button>
+                    @if(request()->filled('search'))
+                        <a href="{{ route('exercises.index') }}" class="border border-gray-600 text-gray-300 rounded-xl px-3 py-2 text-sm inline-flex items-center">مسح</a>
+                    @endif
                 </form>
             </div>
 
-            <table class="w-full text-right text-sm text-gray-300">
+            <div class="overflow-x-auto"><table class="w-full min-w-[620px] text-right text-sm text-gray-300">
                 <thead class="bg-gray-900 text-gray-400 uppercase text-xs">
                 <tr>
                     <th class="p-4">اسم التمرين</th>
@@ -82,10 +86,10 @@
                     </tr>
                 @endforelse
                 </tbody>
-            </table>
+            </table></div>
 
-            <div class="p-4 border-t border-gray-700">
-                {{ $exercises->links() }}
+            <div class="gym-pagination p-4 border-t border-gray-700" dir="rtl">
+                {{ $exercises->withQueryString()->links() }}
             </div>
         </x-ui.panel>
 
