@@ -1,6 +1,16 @@
 <x-app-layout>
+<style>
+    /* Independent visibility rules: do not rely on generated Tailwind utilities. */
+    .gym-measurements-mobile { display: none !important; }
+    .gym-measurements-desktop { display: block !important; }
+    @media (max-width: 767px) {
+        .gym-measurements-mobile { display: block !important; }
+        .gym-measurements-desktop { display: none !important; }
+    }
+</style>
+
     <x-slot name="header">
-        <div class="flex justify-between items-center">
+        <div class="flex flex-wrap justify-between items-center gap-2">
             <h2 class="font-extrabold text-2xl text-white flex items-center gap-2">
                 <span>⚖️</span> وزن الجسم والقياسات
             </h2>
@@ -58,8 +68,8 @@
         </div>
 
         <!-- 2. نموذج تسجيل قياس جديد -->
-        <x-ui.panel class="p-6 space-y-4">
-            <h3 class="text-lg font-bold text-white border-b border-gray-700 pb-3 flex items-center justify-between">
+        <x-ui.panel class="p-4 sm:p-6 space-y-4 min-w-0">
+            <h3 class="text-lg font-bold text-white border-b border-gray-700 pb-3 flex flex-wrap items-start justify-between gap-2">
                 <span class="flex items-center gap-2">📝 إدخال قياسات اليوم</span>
                 <span class="text-[11px] font-normal text-gray-400">* الوزن و الطول و التاريخ فقط إجباري، وباقي الحقول اختيارية</span>
             </h3>
@@ -124,7 +134,36 @@
                 </h3>
             </div>
 
-            <div class="overflow-x-auto">
+            {{-- عرض الهاتف: كروت كاملة بدل تمرير الجدول العريض --}}
+            <div class="gym-measurements-mobile divide-y divide-gray-700/50" dir="rtl">
+                @forelse($measurements as $item)
+                    <article class="p-4 space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="text-sm font-bold text-white">{{ \Carbon\Carbon::parse($item->date)->locale('ar')->translatedFormat('l، d F Y') }}</span>
+                            <span class="text-base font-black text-emerald-400" dir="rtl">{{ number_format($item->weight, 2) }} كجم</span>
+                        </div>
+                        <dl class="grid grid-cols-2 gap-2 text-xs">
+                            @foreach(['الطول' => [$item->height, 'سم'], 'الذراع' => [$item->biceps, 'سم'], 'الصدر' => [$item->chest, 'سم'], 'الخصر' => [$item->waist, 'سم'], 'الفخذ' => [$item->thighs, 'سم']] as $label => $value)
+                                <div class="min-w-0 rounded-xl border border-gray-700 bg-gray-900/50 p-3">
+                                    <dt class="text-gray-400 mb-1">{{ $label }}</dt>
+                                    <dd class="text-gray-100 font-bold break-words">{{ $value[0] !== null ? $value[0].' '.$value[1] : '—' }}</dd>
+                                </div>
+                            @endforeach
+                        </dl>
+                        @if($item->notes)
+                            <p class="text-xs text-gray-300 break-words rounded-xl bg-gray-900/50 border border-gray-700 p-3"><span class="text-gray-400">ملاحظات: </span>{{ $item->notes }}</p>
+                        @endif
+                        <form action="{{ route('measurements.destroy', $item->id) }}" method="POST" onsubmit="return confirm('هل أنت متأكد من حذف القياس؟')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="inline-flex min-h-11 items-center justify-center gap-2 px-4 rounded-xl border border-red-700/60 bg-red-950/30 text-red-300 font-bold text-xs">🗑️ حذف القياس</button>
+                        </form>
+                    </article>
+                @empty
+                    <p class="p-6 text-center text-gray-400 text-sm">لا توجد قياسات مسجلة بعد.</p>
+                @endforelse
+            </div>
+            <div class="gym-measurements-desktop overflow-x-auto">
                 <table class="w-full text-right text-xs text-gray-300">
                     <thead class="bg-gray-900 text-gray-400 uppercase">
                     <tr>

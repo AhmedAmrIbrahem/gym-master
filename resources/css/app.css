@@ -723,3 +723,212 @@ html[data-theme="light"] .gym-day-card { background:#f8fafc !important; border-c
 }
 html[data-theme="light"] .gym-day-card { background: #f8fbff !important; border-color: #d5e2f1 !important; }
 html[data-theme="light"] .gym-workout-history-table td::before { color: #52657d; }
+
+/* ============================================================================
+   Mobile UX / phase 2 — one consistent training picker and nutrition heading.
+   The exercise modal is teleported to <body>, so no program/day card can clip it.
+   These rules are component-scoped; existing desktop layout and app logic remain.
+   ============================================================================ */
+.gym-exercise-dialog-open { overflow: hidden !important; }
+.gym-exercise-popover-up {
+  bottom: calc(100% + 8px);
+  top: auto;
+  margin-top: 0 !important;
+}
+.gym-exercise-results {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior: contain;
+}
+.gym-exercise-results::-webkit-scrollbar { display: none; width: 0; height: 0; }
+.gym-exercise-popover { max-width: 100%; box-sizing: border-box; }
+.gym-exercise-popover .gym-exercise-option { min-height: 38px; }
+.gym-exercise-trigger { min-height: 44px; }
+
+.gym-exercise-mobile-layer {
+  --gym-sheet-bg: #182538;
+  --gym-sheet-card: #22324a;
+  --gym-sheet-ink: #f8fafc;
+  --gym-sheet-muted: #b6c5da;
+  --gym-sheet-line: #3c516d;
+  --gym-sheet-accent: #93c5fd;
+  position: fixed !important;
+  inset-inline: 0;
+  bottom: auto;
+  width: 100%;
+  z-index: 10080;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  isolation: isolate;
+  overflow: hidden;
+  direction: rtl;
+}
+.gym-exercise-mobile-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 15, 28, .65);
+  border: 0;
+  cursor: default;
+}
+.gym-exercise-mobile-sheet {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 580px;
+  max-height: min(90%, 640px);
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px 16px max(16px, env(safe-area-inset-bottom));
+  background: var(--gym-sheet-bg);
+  border: 1px solid var(--gym-sheet-line);
+  border-bottom: 0;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -15px 50px rgba(0,0,0,.26);
+  color: var(--gym-sheet-ink);
+  overflow: hidden;
+}
+.gym-exercise-mobile-handle {
+  align-self: center;
+  width: 42px;
+  height: 4px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  background: var(--gym-sheet-line);
+}
+.gym-exercise-mobile-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.gym-exercise-mobile-title { font-size: 16px; font-weight: 800; color: var(--gym-sheet-ink); line-height: 1.6; }
+.gym-exercise-mobile-subtitle { font-size: 12px; color: var(--gym-sheet-muted); line-height: 1.6; }
+.gym-exercise-mobile-close {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  border: 1px solid var(--gym-sheet-line);
+  color: var(--gym-sheet-ink);
+  background: var(--gym-sheet-card);
+  font-size: 15px;
+}
+.gym-exercise-mobile-search {
+  flex: 0 0 auto;
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  min-width: 0;
+  font-size: 16px !important;
+  border-radius: 12px;
+  border: 1px solid var(--gym-sheet-line);
+  background: var(--gym-sheet-card);
+  color: var(--gym-sheet-ink);
+}
+.gym-exercise-mobile-results {
+  display: block;
+  min-height: 65px;
+  max-height: none !important;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 5px;
+}
+.gym-exercise-mobile-results .gym-exercise-group { padding: 4px 0; }
+.gym-exercise-mobile-results .gym-exercise-group-title {
+  position: sticky;
+  top: 0;
+  padding: 9px 9px 6px;
+  color: var(--gym-sheet-accent);
+  font-size: 12px;
+  font-weight: 800;
+  background: var(--gym-sheet-bg);
+}
+.gym-exercise-mobile-option {
+  display: block;
+  width: 100%;
+  min-height: 46px;
+  padding: 12px;
+  margin-bottom: 3px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: var(--gym-sheet-ink);
+  text-align: right;
+  font-size: 14px;
+  line-height: 1.65;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.gym-exercise-mobile-option:active,
+.gym-exercise-mobile-option[aria-selected="true"] {
+  background: var(--gym-sheet-card) !important;
+  border-color: var(--gym-sheet-line);
+  color: var(--gym-sheet-accent) !important;
+}
+.gym-exercise-mobile-message {
+  padding: 16px 8px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--gym-sheet-muted);
+}
+.gym-exercise-mobile-retry { padding: 8px 16px; color: var(--gym-sheet-accent); font-weight: 800; text-decoration: underline; }
+.gym-exercise-mobile-sheet :is(button,input):focus-visible { outline: 2px solid #60a5fa; outline-offset: 2px; }
+html[data-theme="light"] .gym-exercise-mobile-layer {
+  --gym-sheet-bg: #fff;
+  --gym-sheet-card: #f1f6fd;
+  --gym-sheet-ink: #1c2c42;
+  --gym-sheet-muted: #50627d;
+  --gym-sheet-line: #d7e3f1;
+  --gym-sheet-accent: #215dcc;
+}
+html[data-theme="light"] .gym-exercise-mobile-search {
+  background: var(--gym-sheet-card) !important;
+  color: var(--gym-sheet-ink) !important;
+  border-color: var(--gym-sheet-line) !important;
+}
+html[data-theme="light"] .gym-exercise-mobile-option {
+  color: var(--gym-sheet-ink) !important;
+}
+html[data-theme="light"] .gym-exercise-mobile-close {
+  background: var(--gym-sheet-card) !important;
+  color: var(--gym-sheet-ink) !important;
+  border-color: var(--gym-sheet-line) !important;
+}
+
+/* Nutrition heading: title and history link get their own breathing room on phones. */
+.gym-nutrition-page-heading { min-width: 0; }
+.gym-nutrition-page-heading h2 { min-width: 0; }
+.gym-nutrition-history-link { min-height: 42px; flex-shrink: 0; text-align: center; }
+html[data-theme="light"] .gym-nutrition-history-link {
+  background: #eef5ff !important;
+  border-color: #c7dcfb !important;
+  color: #2057bc !important;
+  box-shadow: none;
+}
+html[data-theme="light"] .gym-nutrition-history-link:hover { background: #e0edff !important; }
+@media (max-width: 767px) {
+  .gym-nutrition-page-heading { align-items: stretch; flex-direction: column; gap: 12px; width: 100%; }
+  .gym-nutrition-page-heading h2 { font-size: clamp(17px, 4.7vw, 21px) !important; line-height: 1.65; overflow-wrap: anywhere; }
+  .gym-nutrition-history-link { align-self: stretch; justify-content: center; min-height: 44px; font-size: 13px; }
+  .gym-nutrition-day-controls { flex-wrap: wrap; gap: 9px; width: 100%; }
+  .gym-nutrition-day-controls > div { max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gym-exercise-mobile-layer *, .gym-exercise-popover * { scroll-behavior: auto !important; }
+}
+
+/* Keep the picker usable when the phone's keyboard leaves very little height. */
+.gym-exercise-mobile-layer-compact .gym-exercise-mobile-sheet {
+  max-height: calc(100% - 6px);
+  min-height: 0;
+  gap: 7px;
+  padding-top: 7px;
+}
+.gym-exercise-mobile-layer-compact .gym-exercise-mobile-handle,
+.gym-exercise-mobile-layer-compact .gym-exercise-mobile-subtitle { display: none; }
+.gym-exercise-mobile-layer-compact .gym-exercise-mobile-results { min-height: 32px; }
+
+/* Alpine hides overlays until its component has initialized. */
+[x-cloak] { display: none !important; }

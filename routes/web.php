@@ -18,7 +18,7 @@ Route::get('/', function () {
 });
 
 // مسارات جميع المستخدمين المسجلين (مشتركين + سوبر أدمن)
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'active_account'])->group(function () {
 
     // لوحة التحكم الرئيسية والتمارين
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -31,7 +31,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('exercises', ExerciseController::class)->except(['create', 'show', 'edit']);
 
     // إدارة الأنظمة والأيام
-    Route::resource('programs', ProgramController::class);
+    Route::get('/programs/exercises/search', [ProgramController::class, 'searchExercises'])
+        ->middleware('throttle:120,1')->name('programs.exercises.search');
+    Route::resource('programs', ProgramController::class)->except(['create', 'show', 'edit']);
     Route::post('/programs/{program}/activate', [ProgramController::class, 'activate'])->name('programs.activate');
 
     Route::post('/programs/{program}/days', [ProgramController::class, 'storeDay'])->name('programs.days.store');
@@ -48,8 +50,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('/measurements/{measurement}', [BodyMeasurementController::class, 'destroy'])->name('measurements.destroy');
 
     // التغذية
+    Route::get('/nutrition/foods/search', [NutritionController::class, 'searchFoods'])
+        ->middleware('throttle:120,1')->name('nutrition.searchFoods');
     Route::get('/nutrition', [NutritionController::class, 'index'])->name('nutrition.index');
     Route::post('/nutrition/food', [NutritionController::class, 'storeFood'])->name('nutrition.storeFood');
+    Route::put('/nutrition/food/{food}', [NutritionController::class, 'updateFood'])->name('nutrition.updateFood');
+    Route::delete('/nutrition/food/{food}', [NutritionController::class, 'destroyFood'])->name('nutrition.destroyFood');
     Route::post('/nutrition/item', [NutritionController::class, 'storeMealItem'])->name('nutrition.storeMealItem');
     Route::delete('/nutrition/item/{mealItem}', [NutritionController::class, 'destroyMealItem'])->name('nutrition.destroyMealItem');
     Route::get('/nutrition/history', [NutritionController::class, 'history'])->name('nutrition.history');
@@ -60,11 +66,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // مسار الشات بوت الذكي (يعمل للمشترك والأدمن معاً)
-    Route::post('/chatbot/send', [ChatbotController::class, 'sendMessage'])->name('chatbot.send');
+    Route::post('/chatbot/send', [ChatbotController::class, 'sendMessage'])
+        ->middleware('throttle:30,1')->name('chatbot.send');
 });
 
 // مسارات السوبر أدمن فقط (Super Admin Routes)
-Route::middleware(['auth', 'super_admin'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'active_account', 'super_admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/chatbot/faqs', [ChatbotFaqController::class, 'index'])->name('admin.chatbot.faqs.index');
     Route::post('/chatbot/faqs', [ChatbotFaqController::class, 'store'])->name('admin.chatbot.faqs.store');

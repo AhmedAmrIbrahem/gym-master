@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\DeletionProtection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,21 +23,30 @@ class ProfileController extends Controller
 
     public function update(Request $request)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$request->user()->id],
-            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'], // التحقق من أن الملف صورة وبحجم مناسب
-            'target_calories' => ['required', 'integer', 'min:500', 'max:10000'],
-            'target_protein' => ['required', 'numeric', 'min:0', 'max:1000'],
-            'target_carbs' => ['required', 'numeric', 'min:0', 'max:1000'],
-            'target_fats' => ['required', 'numeric', 'min:0', 'max:1000'],
-            'rest_target_calories' => ['nullable', 'integer', 'min:500', 'max:10000'],
-            'rest_target_protein' => ['nullable', 'numeric', 'min:0', 'max:1000'],
-            'rest_target_carbs' => ['nullable', 'numeric', 'min:0', 'max:1000'],
-            'rest_target_fats' => ['nullable', 'numeric', 'min:0', 'max:1000'],
-        ]);
-
         $user = $request->user();
+
+        // السوبر أدمن يدير حسابه فقط؛ أهداف التغذية تخص المشتركين.
+        // لا نقبل حقول الأهداف حتى لو اتبعتت يدويًا في الطلب.
+        $rules = [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+        ];
+
+        if (! $user->isSuperAdmin()) {
+            $rules += [
+                'target_calories' => ['required', 'integer', 'min:500', 'max:10000'],
+                'target_protein' => ['required', 'numeric', 'min:0', 'max:1000'],
+                'target_carbs' => ['required', 'numeric', 'min:0', 'max:1000'],
+                'target_fats' => ['required', 'numeric', 'min:0', 'max:1000'],
+                'rest_target_calories' => ['nullable', 'integer', 'min:500', 'max:10000'],
+                'rest_target_protein' => ['nullable', 'numeric', 'min:0', 'max:1000'],
+                'rest_target_carbs' => ['nullable', 'numeric', 'min:0', 'max:1000'],
+                'rest_target_fats' => ['nullable', 'numeric', 'min:0', 'max:1000'],
+            ];
+        }
+
+        $validated = $request->validate($rules);
 
         // معالجة رفع الصورة الشخصية الجديدة
         if ($request->hasFile('avatar')) {
@@ -68,6 +78,10 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+
+        if ($reason = DeletionProtection::userReason($user)) {
+            return back()->with('error', $reason);
+        }
 
         if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
             Storage::disk('public')->delete($user->avatar);

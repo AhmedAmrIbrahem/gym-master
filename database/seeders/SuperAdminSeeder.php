@@ -20,6 +20,10 @@ class SuperAdminSeeder extends Seeder
             return;
         }
 
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new RuntimeException('INITIAL_ADMIN_EMAIL is not a valid email address.');
+        }
+
         if (strlen($password) < 12) {
             throw new RuntimeException('INITIAL_ADMIN_PASSWORD must be at least 12 characters.');
         }
@@ -33,7 +37,7 @@ class SuperAdminSeeder extends Seeder
         User::create([
             'name' => 'السوبر أدمن',
             'email' => $email,
-            'phone' => env('INITIAL_ADMIN_PHONE', '01000000000'),
+            'phone' => env('INITIAL_ADMIN_PHONE'),
             'role' => 'super_admin',
             'is_active' => true,
             'password' => Hash::make($password),

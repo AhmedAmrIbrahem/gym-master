@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\WelcomeUserMail;
 use App\Models\User;
 use App\Models\WorkoutSession;
+use App\Support\DeletionProtection;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -144,6 +145,11 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
         abort_if($user->isSuperAdmin(), 403);
+
+        if ($reason = DeletionProtection::userReason($user)) {
+            return back()->with('error', $reason);
+        }
+
         $user->delete();
 
         return redirect()->back()->with('success', 'تم حذف المشترك بنجاح!');

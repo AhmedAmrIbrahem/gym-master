@@ -96,6 +96,72 @@
     .gym-chat-quick { background: #172338; color: #bfdbfe; border: 1px solid #334155; border-radius: 999px; padding: 8px 12px; font-size: 12px; }
     .gym-chat-quick:hover { background: #1d4ed8; color: white; }
 
+    /* Light mode: chatbot is teleported to body, so theme selectors must start at html. */
+    html[data-theme="light"] .gym-chat-panel { background: #f8fafc !important; border-color: #d8e2ee !important; }
+    html[data-theme="light"] .gym-chat-messages { background: #f0f5fb !important; scrollbar-color: #bdcbe0 transparent; }
+    html[data-theme="light"] .gym-chat-messages::-webkit-scrollbar-thumb { background: #bdcbe0; }
+    html[data-theme="light"] .gym-chat-messages > div > .flex.justify-start > .bg-gray-800\/90,
+    html[data-theme="light"] .gym-chat-messages .bg-gray-800 { background: #fff !important; color: #25364c !important; border-color: #d8e2ee !important; }
+    html[data-theme="light"] .gym-chat-messages .text-gray-200,
+    html[data-theme="light"] .gym-chat-messages .text-gray-300 { color: #52647c !important; }
+    html[data-theme="light"] .gym-chat-messages .text-blue-400 { color: #1d4ed8 !important; }
+    html[data-theme="light"] .gym-chat-quick { background: #fff !important; color: #1e40af !important; border: 1px solid #bdd1ef !important; box-shadow: 0 1px 3px rgba(15,23,42,.06); }
+    html[data-theme="light"] .gym-chat-quick:hover,
+    html[data-theme="light"] .gym-chat-quick:focus-visible { background: #e9f1ff !important; color: #1d4ed8 !important; border-color: #2563eb !important; }
+    html[data-theme="light"] .gym-chat-rich h3 { color: #1d4ed8; }
+    html[data-theme="light"] .gym-chat-rich h4 { color: #1e40af; }
+    html[data-theme="light"] .gym-chat-rich strong { color: #172b45; }
+    html[data-theme="light"] .gym-chat-rich hr { border-color: #d8e2ee; }
+    html[data-theme="light"] .gym-chat-rich code { background: #e8eef7; color: #263b57; }
+    html[data-theme="light"] .gym-chat-action { background: #f1f5fb; border-color: #cfdceb; color: #334b6b; }
+    html[data-theme="light"] .gym-chat-action:hover { color: #1d4ed8; border-color: #2563eb; }
+    html[data-theme="light"] .gym-chat-panel > div:last-child { background: #fff !important; border-top-color: #d8e2ee !important; }
+    html[data-theme="light"] .gym-chat-input { background: #f8fafc !important; color: #1e293b !important; border-color: #cbd5e1 !important; }
+    html[data-theme="light"] .gym-chat-input::placeholder { color: #64748b !important; }
+    html[data-theme="light"] .gym-chat-input:focus { border-color: #2563eb !important; }
+    html[data-theme="light"] .gym-chat-panel > div:last-child p.text-gray-500 { color: #64748b !important; }
+    html[data-theme="light"] .gym-calorie-card { color: #263b57; }
+    html[data-theme="light"] .gym-calorie-hero { background: #e8f2ff; border-color: #bfd7fa; }
+    html[data-theme="light"] .gym-calorie-hero strong { color: #1d4ed8; }
+    html[data-theme="light"] .gym-calorie-tile,
+    html[data-theme="light"] .gym-calorie-macros { background: #f8fafc; border-color: #d8e2ee; }
+    html[data-theme="light"] .gym-calorie-tile strong { color: #172b45; }
+    html[data-theme="light"] .gym-calorie-muted { color: #64748b; }
+    html[data-theme="light"] .gym-calorie-track { background: #e2e8f0; }
+
+    /* iOS/Android: readable composer and an unobtrusive launcher. */
+    @media (max-width: 767px) {
+        .gym-chat-input { font-size: 16px !important; }
+        .gym-chat-launcher { left: 12px !important; right: auto !important;
+            bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important; }
+        .gym-chat-launcher-button { width: 48px !important; height: 48px !important;
+            min-width: 48px !important; min-height: 48px !important;
+            box-shadow: 0 6px 20px rgba(15,23,42,.26) !important; }
+        .gym-chat-launcher-button svg { width: 27px; height: 27px; }
+        /* Leave scrolling room to reach the final action behind the fixed button. */
+        .mobile-content { padding-bottom: max(92px, calc(76px + env(safe-area-inset-bottom, 0px))) !important; }
+    }
+
+    /* Theme-consistent surfaces: chat lives outside the page layout via teleport. */
+    html[data-theme="light"] .gym-chat-header {
+        background: linear-gradient(115deg, #e8f1ff 0%, #f8fbff 60%, #e8effd 100%) !important;
+        color: #1e3a5f !important; border-bottom-color: #d5e3f5 !important;
+    }
+    html[data-theme="light"] .gym-chat-header h4 { color: #19365d !important; }
+    html[data-theme="light"] .gym-chat-header .text-emerald-400 { color: #047857 !important; }
+    html[data-theme="light"] .gym-chat-header .text-orange-400 { color: #9a3412 !important; }
+    html[data-theme="light"] .gym-chat-header button { color: #315682 !important; border-color: #bfd2eb !important; }
+    html[data-theme="light"] .gym-chat-header button:hover { background: #dceafe !important; color: #1d4ed8 !important; }
+    html[data-theme="light"] .gym-chat-welcome > div { background: #fff !important; color: #334155 !important; border-color: #d6e2ef !important; }
+    html[data-theme="light"] .gym-chat-bubble.bg-gray-800 { background: #fff !important; color: #25364c !important; border-color: #d6e2ef !important; }
+    html[data-theme="light"] .gym-chat-bubble.bg-blue-600 { color: #fff !important; }
+    html[data-theme="light"] .gym-chat-bubble .border-gray-700\/50 { border-color: #dce6f2 !important; }
+    html[data-theme="light"] .gym-chat-composer { background: #fff !important; border-color: #d6e2ef !important; }
+    html[data-theme="light"] .gym-chat-send { background: #2563eb !important; color: white !important; }
+    html[data-theme="light"] .gym-chat-send:hover { background: #1d4ed8 !important; }
+    .gym-chat-suggestions { align-items: stretch; }
+    .gym-chat-quick { min-height: 37px; line-height: 1.4; text-align: center; }
+
     @media (max-width: 640px) {
         .gym-chat-window {
             bottom: 0 !important;
@@ -106,6 +172,14 @@
             height: 100dvh !important;
         }
 
+        .gym-chat-composer { padding-bottom: max(12px, env(safe-area-inset-bottom)) !important; }
+        .gym-chat-header { padding: 11px 12px !important; gap: 7px; }
+        .gym-chat-header .w-12.h-12 { width: 40px; height: 40px; }
+        .gym-chat-header h4 { font-size: 14px; }
+        .gym-chat-header .flex.items-center.gap-2.shrink-0 { gap: 4px; }
+        .gym-chat-header button { width: 36px !important; height: 36px !important; min-width: 36px !important; }
+        .gym-chat-suggestions { gap: 8px; }
+        .gym-chat-quick { max-width: 100%; }
         .gym-chat-panel { border-radius: 0 !important; }
         .gym-chat-messages { padding: 12px !important; }
         .gym-chat-messages > div { width: 100%; min-width: 0; }
@@ -122,6 +196,7 @@
 <!-- المكون الرئيسي للشات -->
 <div
     x-data="chatbot()"
+    class="gym-chat-launcher"
     style="
         position: fixed !important;
         bottom: 24px !important;
@@ -135,7 +210,7 @@
         type="button"
         @click="open = !open; if(open) scrollToBottom()"
         :aria-label="open ? 'إغلاق الشات' : 'فتح الشات'"
-        class="bg-blue-600 hover:bg-blue-500
+        class="gym-chat-launcher-button bg-blue-600 hover:bg-blue-500
                text-white shadow-2xl
                flex items-center justify-center
                transition-all hover:scale-110
@@ -143,10 +218,10 @@
                border-2 border-blue-400/40
                cursor-pointer overflow-hidden"
         style="
-            width: 58px !important;
-            height: 58px !important;
-            min-width: 58px !important;
-            min-height: 58px !important;
+            width: 58px;
+            height: 58px;
+            min-width: 58px;
+            min-height: 58px;
             border-radius: 9999px !important;
             padding: 0 !important;
         "
@@ -197,7 +272,7 @@
 
                 <!-- الهيدر -->
                 <div
-                    class="bg-gradient-to-r
+                    class="gym-chat-header bg-gradient-to-r
                            from-blue-900 via-indigo-900 to-gray-900
                            px-5 py-4 text-white
                            flex items-center justify-between
@@ -321,7 +396,7 @@
                     <div class="max-w-3xl mx-auto space-y-5">
 
                         <!-- رسالة الترحيب -->
-                        <div class="flex justify-start">
+                        <div class="gym-chat-welcome flex justify-start">
                             <div
                                 class="bg-gray-800/90 text-gray-200
                                        p-4 rounded-2xl
@@ -343,7 +418,7 @@
                         </div>
 
                         <!-- اقتراحات سريعة: تظهر فقط في بداية المحادثة -->
-                        <div x-show="messages.length === 0" class="flex flex-wrap gap-2 pt-2">
+                        <div x-show="messages.length === 0" class="gym-chat-suggestions flex flex-wrap gap-2 pt-2">
                             <template x-for="q in quickQuestions" :key="q">
                                 <button type="button" class="gym-chat-quick"
                                         @click="askQuick(q)" :disabled="loading" x-text="q"></button>
@@ -354,7 +429,7 @@
                         <template x-for="(msg, index) in messages" :key="index">
                             <div class="flex w-full"
                                  :class="msg.sender === 'user' ? 'justify-end' : 'justify-start'">
-                                <div class="min-w-0 p-4 rounded-2xl border shadow-md"
+                                <div class="gym-chat-bubble min-w-0 p-4 rounded-2xl border shadow-md"
                                      :class="msg.sender === 'user'
                                         ? 'bg-blue-600 text-white border-blue-500 max-w-[90%] sm:max-w-[75%] rounded-tr-sm'
                                         : 'bg-gray-800 text-gray-200 border-gray-700 max-w-[97%] sm:max-w-[90%] rounded-tl-sm'">
@@ -392,7 +467,7 @@
 
                 <!-- منطقة الكتابة والإرسال -->
                 <div
-                    class="bg-gray-900
+                    class="gym-chat-composer bg-gray-900
                            border-t border-gray-800
                            p-3 sm:p-5 shrink-0"
                 >
@@ -425,7 +500,7 @@
                         <button
                             type="submit"
                             :disabled="loading || !inputMessage.trim()"
-                            class="bg-blue-600 hover:bg-blue-500
+                            class="gym-chat-send bg-blue-600 hover:bg-blue-500
                                    disabled:opacity-40
                                    disabled:cursor-not-allowed
                                    text-white

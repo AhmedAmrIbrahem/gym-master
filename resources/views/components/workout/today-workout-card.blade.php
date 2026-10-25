@@ -1,6 +1,6 @@
 @props(['activeProgram' => null, 'todayWorkout' => null])
 
-<div id="today-workout-selector" class="bg-gradient-to-br from-gray-800 to-gray-800/80 p-5 rounded-2xl border border-gray-700/80 shadow-xl flex flex-col justify-between space-y-3 relative overflow-hidden group scroll-mt-24">
+<div id="today-workout-selector" class="bg-gradient-to-br from-gray-800 to-gray-800/80 p-5 rounded-2xl border border-gray-700/80 shadow-xl flex flex-col justify-between space-y-3 relative z-20 group scroll-mt-24">
     <div class="flex items-center justify-between">
         <div>
             <p class="text-[11px] font-bold text-gray-400">🏋️‍♂️ تمرين اليوم</p>
@@ -21,7 +21,7 @@
                 <summary class="cursor-pointer list-none bg-blue-600 hover:bg-blue-500 text-center text-white text-[11px] font-bold px-3 py-2 rounded-lg transition shadow-md">
                     ⚡ اختر يوم التمرين <span aria-hidden="true">▾</span>
                 </summary>
-                <div class="mt-2 space-y-1 max-h-48 overflow-y-auto">
+                <div class="absolute z-50 top-full inset-x-0 mt-2 space-y-1 max-h-48 overflow-y-auto rounded-xl border border-gray-700 bg-gray-800 p-2 shadow-2xl">
                     @foreach($activeProgram->days as $day)
                         <a href="{{ route('workout.start', $day) }}" class="block rounded-lg bg-gray-900/80 hover:bg-gray-700 border border-gray-700 px-3 py-2 text-[11px] font-bold text-white transition">
                             🏋️ {{ $day->name }}

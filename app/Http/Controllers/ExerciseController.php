@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ExerciseFormRequest;
 use App\Models\Exercise;
+use App\Models\DayExercise;
+use App\Models\WorkoutLog;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
@@ -54,6 +56,14 @@ class ExerciseController extends Controller
     public function destroy(Exercise $exercise)
     {
         $this->authorize('delete', $exercise);
+
+        if (DayExercise::where('exercise_id', $exercise->id)->exists()) {
+            return back()->with('error', 'لا يمكن حذف التمرين لأنه مستخدم داخل نظام تدريبي. أزله من الأنظمة المرتبطة أولًا.');
+        }
+
+        if (WorkoutLog::where('exercise_id', $exercise->id)->exists()) {
+            return back()->with('error', 'لا يمكن حذف التمرين لأنه مرتبط بسجل أداء سابق. احتفظنا بالتمرين لحماية تاريخ التدريب.');
+        }
 
         $exercise->delete();
 

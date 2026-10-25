@@ -1,4 +1,4 @@
-@props(['day', 'groupedExercises'])
+@props(['day'])
 
 <div class="gym-day-card bg-gray-900 p-4 rounded-xl border border-gray-700 space-y-3 flex flex-col justify-between" x-data="{ editDay: false }">
     <div>
@@ -29,7 +29,7 @@
         </div>
 
         <!-- قائمة تمارين اليوم -->
-        <ul class="text-sm space-y-2 mb-4">
+        <ul class="text-sm space-y-2 mb-4 gym-day-exercise-list" style="max-height:none!important;overflow:visible!important;">
             @forelse($day->dayExercises as $item)
                 <x-programs.exercise-row :item="$item" />
             @empty
@@ -39,5 +39,12 @@
     </div>
 
     <!-- إضافة تمرين لليوم -->
-    <x-programs.attach-exercise-form :day="$day" :grouped-exercises="$groupedExercises" />
+    <x-programs.attach-exercise-form :day="$day" />
 </div>
+
+<style>
+/* Keep exercise lists natural-height and eliminate browser scrollbars in the card. */
+.gym-day-card .gym-day-exercise-list { overflow:visible!important;max-height:none!important; }
+.gym-day-card :is(.overflow-y-auto,.overflow-y-scroll) { scrollbar-width:none!important;-ms-overflow-style:none!important; }
+.gym-day-card :is(.overflow-y-auto,.overflow-y-scroll)::-webkit-scrollbar { display:none!important;width:0!important;height:0!important; }
+</style>

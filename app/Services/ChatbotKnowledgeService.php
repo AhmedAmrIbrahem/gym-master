@@ -10,10 +10,17 @@ class ChatbotKnowledgeService
     {
         $text = mb_strtolower(trim($text), 'UTF-8');
         $text = preg_replace('/[\x{064B}-\x{065F}\x{0670}]/u', '', $text);
-        $text = str_replace(['أ', 'إ', 'آ', 'ى', 'ـ'], ['ا', 'ا', 'ا', 'ي', ''], $text);
+        $text = str_replace(['أ', 'إ', 'آ', 'ى', 'ـ', 'ؤ', 'ئ'], ['ا', 'ا', 'ا', 'ي', '', 'و', 'ي'], $text);
         $text = preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $text);
 
-        return trim(preg_replace('/\s+/u', ' ', $text));
+        $text = trim(preg_replace('/\s+/u', ' ', $text));
+
+        // Remove harmless conversational wrappers, not words inside the question.
+        // Full question equality still decides the answer: no unsafe fuzzy guesses.
+        $text = preg_replace('/^(?:(?:يا (?:كوتش|بوت|مدرب)|لو سمحت|بعد اذنك|معلش|طب|ممكن تقولي|ممكن تقوللي) )+/u', '', $text);
+        $text = preg_replace('/ (?:يا (?:كوتش|بوت|مدرب)|لو سمحت|بعد اذنك)$/u', '', $text);
+
+        return trim($text);
     }
 
     public function findAnswer(string $question): ?string

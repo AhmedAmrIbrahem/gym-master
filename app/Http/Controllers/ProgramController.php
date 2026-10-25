@@ -10,7 +10,10 @@ use App\Http\Requests\ProgramNameRequest;
 use App\Http\Requests\UpdateDayExerciseRequest;
 use App\Models\DayExercise;
 use App\Models\Exercise;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use App\Models\WorkoutDay;
+use App\Models\WorkoutSession;
 use App\Models\WorkoutProgram;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
@@ -18,18 +21,42 @@ class ProgramController extends Controller
 {
     use AuthorizesRequests;
 
-    public function index()
+    public function index(Request $request)
     {
-        $programs = auth()->user()->workoutPrograms()->with('days.dayExercises.exercise')->get();
+        // Load only the current page's programs and their related day cards.
+        // The exercise bank is fetched separately, only when a picker opens.
+        $programs = $request->user()->workoutPrograms()
+            ->with('days.dayExercises.exercise')
+            ->orderBy('id')
+            ->paginate(5);
 
-        // Fetch once per request, rather than querying from inside each day card.
-        $groupedExercises = Exercise::query()
-            ->accessibleTo(auth()->user())
+        return view('programs.index', compact('programs'));
+    }
+
+    public function searchExercises(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'q' => ['sometimes', 'nullable', 'string', 'max:80'],
+        ]);
+
+        $term = trim($validated['q'] ?? '');
+
+        // Identical access scope to the exercises bank and attach action:
+        // global exercises and the authenticated user's own exercises.
+        $exercises = Exercise::query()
+            ->accessibleTo($request->user())
+            ->when($term !== '', fn ($query) => $query->where(function ($matched) use ($term) {
+                $matched->where('name', 'like', '%'.$term.'%')
+                    ->orWhere('target_muscle', 'like', '%'.$term.'%');
+            }))
+            ->orderBy('target_muscle')
             ->orderBy('name')
-            ->get()
-            ->groupBy('target_muscle');
+            ->orderBy('id')
+            ->limit(40)
+            ->get(['id', 'name', 'target_muscle']);
 
-        return view('programs.index', compact('programs', 'groupedExercises'));
+        return response()->json(['items' => $exercises])
+            ->header('Cache-Control', 'private, no-store');
     }
 
     public function store(ProgramNameRequest $request, CreateProgramAction $action)
@@ -52,9 +79,14 @@ class ProgramController extends Controller
     {
         $this->authorize('delete', $program);
 
+        // Preserve the linked-record deletion safeguard from the earlier patch.
+        if ($program->days()->exists()) {
+            return back()->with('error', 'لا يمكن حذف النظام التدريبي لأنه يحتوي على أيام مرتبطة به. حذف النظام سيمسح الأيام وتمارينها؛ احذف العناصر غير المستخدمة أولًا.');
+        }
+
         $program->delete();
 
-        return back()->with('success', 'تم حذف النظام بالكامل!');
+        return back()->with('success', 'تم حذف النظام بنجاح.');
     }
 
     public function activate(WorkoutProgram $program, ActivateProgramAction $action)
@@ -88,9 +120,17 @@ class ProgramController extends Controller
     {
         $this->authorize('delete', $day);
 
+        if (WorkoutSession::where('workout_day_id', $day->id)->exists()) {
+            return back()->with('error', 'لا يمكن حذف اليوم لأنه مرتبط بجلسات تدريب مسجلة. حذف اليوم سيؤدي لفقدان تاريخ التمرين.');
+        }
+
+        if ($day->dayExercises()->exists()) {
+            return back()->with('error', 'لا يمكن حذف اليوم لأنه يحتوي على تمارين مرتبطة به. أزل التمارين أولًا إذا لم تكن مستخدمة.');
+        }
+
         $day->delete();
 
-        return back()->with('success', 'تم حذف اليوم بجميع تمارينه!');
+        return back()->with('success', 'تم حذف اليوم بنجاح.');
     }
 
     public function attachExercise(AttachExerciseRequest $request, WorkoutDay $day, AttachExerciseToDayAction $action)

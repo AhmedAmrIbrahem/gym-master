@@ -1,4 +1,12 @@
 <x-app-layout>
+    <style>
+        .gym-profile-avatar-input::file-selector-button {
+            background:#2563eb; color:#fff; font-weight:800; border:0;
+            border-radius:10px; padding:10px 12px; margin-inline-end:12px;
+            font-family:inherit; cursor:pointer;
+        }
+        .gym-profile-avatar-input::file-selector-button:hover { background:#3b82f6; }
+    </style>
     <x-slot name="header">
         <h2 class="font-extrabold text-2xl text-white flex items-center gap-2">
             <span>👤</span> الملف الشخصي والإعدادات
@@ -8,38 +16,42 @@
     <div class="max-w-4xl mx-auto space-y-6">
 
         <!-- 1. كارت الهوية والإحصائيات السريعة -->
-        <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
-            <div class="flex items-center gap-4">
-                <div class="w-20 h-20 rounded-2xl overflow-hidden border-2 border-blue-500 shrink-0 shadow-lg">
+        <div class="bg-gray-800 p-4 sm:p-6 rounded-2xl border border-gray-700 shadow-xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-5 md:gap-6 min-w-0">
+            <div class="flex items-center gap-3 sm:gap-4 min-w-0 w-full md:w-auto">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-blue-500 shrink-0 shadow-lg">
                     <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
                 </div>
-                <div>
-                    <h3 class="text-2xl font-black text-white">{{ $user->name }}</h3>
-                    <p class="text-xs text-gray-400 mt-1">{{ $user->email }}</p>
-                    <span class="inline-block mt-2 text-[10px] bg-gray-900 text-gray-400 border border-gray-700 px-3 py-1 rounded-full">
-                        🗓️ عضويتك منذ: {{ $user->created_at->format('Y-m-d') }}
-                    </span>
+                <div class="min-w-0 flex-1">
+                    <h3 class="text-xl sm:text-2xl font-black text-white break-words">{{ $user->name }}</h3>
+                    <p class="text-xs text-gray-400 mt-1 break-all" dir="ltr">{{ $user->email }}</p>
+                    @unless($user->isSuperAdmin())
+                        <span class="inline-block mt-2 text-[10px] bg-gray-900 text-gray-400 border border-gray-700 px-3 py-1 rounded-full">
+                            🗓️ عضويتك منذ: {{ $user->created_at->format('Y-m-d') }}
+                        </span>
+                    @endunless
                 </div>
             </div>
 
-            <div class="flex gap-3 w-full md:w-auto">
-                <div class="bg-gray-900/80 border border-gray-700/80 p-3.5 rounded-xl text-center flex-1 md:w-32">
-                    <p class="text-[10px] text-gray-400 font-bold">إجمالي الجلسات</p>
-                    <p class="text-xl font-extrabold text-blue-400 mt-1">{{ $totalSessions ?? 0 }}</p>
+            @unless($user->isSuperAdmin())
+                <div class="flex gap-3 w-full md:w-auto">
+                    <div class="bg-gray-900/80 border border-gray-700/80 p-3.5 rounded-xl text-center flex-1 md:w-32">
+                        <p class="text-[10px] text-gray-400 font-bold">إجمالي الجلسات</p>
+                        <p class="text-xl font-extrabold text-blue-400 mt-1">{{ $totalSessions ?? 0 }}</p>
+                    </div>
+                    <div class="bg-gray-900/80 border border-gray-700/80 p-3.5 rounded-xl text-center flex-1 md:w-36">
+                        <p class="text-[10px] text-gray-400 font-bold">النظام الحالي</p>
+                        <p class="text-sm font-extrabold text-emerald-400 truncate mt-1">
+                            {{ $activeProgram->name ?? 'غير محدد' }}
+                        </p>
+                    </div>
                 </div>
-                <div class="bg-gray-900/80 border border-gray-700/80 p-3.5 rounded-xl text-center flex-1 md:w-36">
-                    <p class="text-[10px] text-gray-400 font-bold">النظام الحالي</p>
-                    <p class="text-sm font-extrabold text-emerald-400 truncate mt-1">
-                        {{ $activeProgram->name ?? 'غير محدد' }}
-                    </p>
-                </div>
-            </div>
+            @endunless
         </div>
 
-        <!-- 2. تعديل البيانات الشخصية والصورة وأهداف الماكروز (أيام الجيم vs الراحة) -->
-        <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl space-y-6">
+        <!-- 2. تعديل البيانات الشخصية والصورة، والأهداف للمشتركين فقط -->
+        <div class="bg-gray-800 p-4 sm:p-6 rounded-2xl border border-gray-700 shadow-xl space-y-6 min-w-0">
             <h3 class="text-lg font-bold text-white border-b border-gray-700 pb-3 flex items-center gap-2">
-                <span>⚙️</span> تعديل البيانات والأهداف اليومية
+                <span>⚙️</span> {{ $user->isSuperAdmin() ? 'تعديل البيانات الشخصية' : 'تعديل البيانات والأهداف اليومية' }}
             </h3>
 
             <form method="post" action="{{ route('profile.update') }}" enctype="multipart/form-data" class="space-y-6">
@@ -49,10 +61,10 @@
                 <!-- رفع صورة جديدة -->
                 <div>
                     <label for="avatar" class="block text-xs font-bold text-gray-300 mb-2">الصورة الشخصية</label>
-                    <div class="flex items-center gap-4">
-                        <img src="{{ $user->avatar_url }}" alt="Preview" class="w-12 h-12 rounded-xl object-cover border border-gray-700">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 min-w-0">
+                        <img src="{{ $user->avatar_url }}" alt="الصورة الشخصية الحالية" class="w-12 h-12 shrink-0 rounded-xl object-cover border border-gray-700">
                         <input id="avatar" name="avatar" type="file" accept="image/*"
-                               class="block w-full text-xs text-gray-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-500 bg-gray-900 border border-gray-700 rounded-xl cursor-pointer">
+                               class="gym-profile-avatar-input block w-full min-w-0 max-w-full text-sm text-gray-400 file:mr-2 file:py-3 file:px-3 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-500 bg-gray-900 border border-gray-700 rounded-xl cursor-pointer">
                     </div>
                     <x-input-error class="mt-2 text-xs text-red-400" :messages="$errors->get('avatar')" />
                 </div>
@@ -74,6 +86,7 @@
                     </div>
                 </div>
 
+                @unless($user->isSuperAdmin())
                 <!-- قسم أهداف السعرات والماكروز اليومية (أيام الجيم vs أيام الراحة) -->
                 <div class="pt-4 border-t border-gray-700/80 space-y-4">
                     <div>
@@ -140,9 +153,11 @@
                     </div>
                 </div>
 
+                @endunless
+
                 <div class="flex items-center gap-4 pt-2">
                     <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition shadow-lg">
-                        💾 حفظ البيانات والأهداف
+                        {{ $user->isSuperAdmin() ? '💾 حفظ البيانات' : '💾 حفظ البيانات والأهداف' }}
                     </button>
                 </div>
             </form>

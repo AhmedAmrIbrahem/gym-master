@@ -8,6 +8,46 @@
         </div>
     </x-slot>
 
+    <style>
+        /* The desktop table remains intact. Mobile uses full-width action cards. */
+        .gym-faq-mobile { display:none; }
+        .gym-faq-desktop { display:block; }
+        @media (max-width:767px) {
+            .gym-faq-desktop { display:none !important; }
+            .gym-faq-mobile { display:grid !important; gap:12px; padding:12px; }
+            .gym-faq-card { min-width:0; padding:16px; border-radius:16px;
+                border:1px solid #46566c; background:#111827; color:#e5e7eb; }
+            .gym-faq-question { overflow-wrap:anywhere; font-size:14px; line-height:1.8; font-weight:800; color:#f8fafc; }
+            .gym-faq-answer { overflow-wrap:anywhere; white-space:pre-line; font-size:13px;
+                line-height:1.75; color:#cbd5e1; display:-webkit-box;
+                -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
+            .gym-faq-meta { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:12px; }
+            .gym-faq-chip { padding:5px 10px; border:1px solid #475569; border-radius:999px;
+                font-size:11px; color:#cbd5e1; }
+            .gym-faq-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:14px; }
+            .gym-faq-actions button { display:flex; width:100%; min-width:0; min-height:44px;
+                justify-content:center; align-items:center; gap:5px; border-radius:11px;
+                font-size:12px; font-weight:800; border:1px solid transparent; }
+            .gym-faq-view { background:#082f49; color:#bae6fd; border-color:#0369a1 !important; }
+            .gym-faq-edit { background:#422006; color:#fde68a; border-color:#b45309 !important; }
+            .gym-faq-delete { background:#450a0a; color:#fecaca; border-color:#b91c1c !important; }
+            .gym-faq-mobile input:not([type="checkbox"]) { font-size:16px; }
+            .gym-faq-admin-modal { align-items:flex-start !important;
+                overflow-y:auto; padding:12px 12px max(12px,env(safe-area-inset-bottom,0px)) !important; }
+            .gym-faq-admin-modal section { max-height:min(calc(100dvh - 24px),calc(var(--gym-visual-viewport-height,100dvh) - 24px));
+                overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
+            .gym-faq-admin-modal input:not([type="checkbox"]),
+            .gym-faq-admin-modal textarea { font-size:16px !important; }
+            .gym-faq-admin-modal form button { min-height:44px; }
+        }
+        html[data-theme="light"] .gym-faq-card { background:#fff; border-color:#dbe5f1; color:#334155; }
+        html[data-theme="light"] .gym-faq-question { color:#172b45; }
+        html[data-theme="light"] .gym-faq-answer { color:#475569; }
+        html[data-theme="light"] .gym-faq-chip { background:#f1f5f9; border-color:#dbe5f1; color:#475569; }
+        html[data-theme="light"] .gym-faq-view { background:#e0f2fe; color:#075985; border-color:#7dd3fc !important; }
+        html[data-theme="light"] .gym-faq-edit { background:#fffbeb; color:#92400e; border-color:#fcd34d !important; }
+        html[data-theme="light"] .gym-faq-delete { background:#fff1f2; color:#b91c1c; border-color:#fecdd3 !important; }
+    </style>
     <div dir="rtl" x-data="{ addOpen: {{ $errors->any() ? 'true' : 'false' }}, editId: null, viewId: null }" class="mx-auto max-w-7xl space-y-5 text-gray-100" @keydown.escape.window="addOpen = false; editId = null; viewId = null">
         @if(session('success'))
             <x-ui-alert type="success">✓ {{ session('success') }}</x-ui-alert>
@@ -28,7 +68,7 @@
         </div>
 
         <div class="overflow-hidden rounded-2xl border border-gray-700 bg-gray-800 shadow-xl">
-            <div class="overflow-x-auto">
+            <div class="gym-faq-desktop overflow-x-auto">
                 <table class="w-full min-w-[740px] text-right text-sm">
                     <thead class="border-b border-gray-600 bg-gray-900 text-gray-200">
                     <tr>
@@ -79,11 +119,39 @@
                     </tbody>
                 </table>
             </div>
+            {{-- Same FAQ records and routes, presented without horizontal scrolling on phones. --}}
+            <div class="gym-faq-mobile" dir="rtl">
+                @forelse($faqs as $faq)
+                    <article class="gym-faq-card">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <span class="text-xs text-gray-400">سؤال #{{ $faq->id }}</span>
+                            <span class="inline-flex rounded-lg px-3 py-1 text-xs font-bold {{ $faq->is_active ? 'bg-emerald-900 text-emerald-200' : 'bg-amber-900 text-amber-200' }}">
+                                {{ $faq->is_active ? 'مفعّل' : 'معطّل' }}
+                            </span>
+                        </div>
+                        <h4 class="gym-faq-question" dir="auto">{{ $faq->question }}</h4>
+                        <p class="gym-faq-answer mt-2">{{ $faq->answer }}</p>
+                        <div class="gym-faq-meta">
+                            <span class="gym-faq-chip">{{ $faq->category ?: 'عام' }}</span>
+                        </div>
+                        <div class="gym-faq-actions">
+                            <button type="button" @click="viewId = {{ $faq->id }}" class="gym-faq-view" aria-label="عرض السؤال">👁️ عرض</button>
+                            <button type="button" @click="editId = {{ $faq->id }}" class="gym-faq-edit" aria-label="تعديل السؤال">✏️ تعديل</button>
+                            <form action="{{ route('admin.chatbot.faqs.destroy', $faq) }}" method="POST" onsubmit="return confirm('هل أنت متأكد من حذف السؤال نهائياً؟')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="gym-faq-delete" aria-label="حذف السؤال">🗑️ حذف</button>
+                            </form>
+                        </div>
+                    </article>
+                @empty
+                    <p class="p-6 text-center text-sm text-gray-400">لا توجد أسئلة مسجلة حاليًا.</p>
+                @endforelse
+            </div>
         </div>
         <div class="text-gray-200">{{ $faqs->links() }}</div>
 
         <!-- نافذة إضافة سؤال، في نفس الصفحة -->
-        <div x-show="addOpen" x-cloak class="fixed inset-0 z-[100010] flex items-center justify-center bg-black/75 p-4" @click.self="addOpen = false">
+        <div x-show="addOpen" x-cloak class="gym-faq-admin-modal fixed inset-0 z-[100010] flex items-center justify-center bg-black/75 p-4" @click.self="addOpen = false">
             <section role="dialog" aria-modal="true" aria-label="إضافة سؤال جديد" class="max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-gray-600 bg-gray-800 p-5 shadow-2xl sm:p-7">
                 <div class="mb-5 flex items-center justify-between"><h3 class="text-lg font-bold text-white">إضافة سؤال جديد</h3><button type="button" @click="addOpen = false" class="rounded-lg p-2 text-gray-300 hover:bg-gray-700" aria-label="إغلاق">✕</button></div>
                 <form method="POST" action="{{ route('admin.chatbot.faqs.store') }}" class="space-y-4">
@@ -100,7 +168,7 @@
 
         <!-- نافذة عرض التفاصيل (قراءة فقط) -->
         @foreach($faqs as $faq)
-            <div x-show="viewId === {{ $faq->id }}" x-cloak class="fixed inset-0 z-[100010] flex items-center justify-center bg-black/75 p-4" @click.self="viewId = null">
+            <div x-show="viewId === {{ $faq->id }}" x-cloak class="gym-faq-admin-modal fixed inset-0 z-[100010] flex items-center justify-center bg-black/75 p-4" @click.self="viewId = null">
                 <section role="dialog" aria-modal="true" aria-label="تفاصيل السؤال" class="max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-gray-600 bg-gray-800 p-5 text-gray-100 shadow-2xl sm:p-7">
                     <div class="mb-5 flex items-center justify-between gap-3">
                         <h3 class="text-lg font-bold text-white">تفاصيل السؤال #{{ $faq->id }}</h3>
@@ -123,7 +191,7 @@
 
         <!-- نوافذ التعديل: لكل سؤال، بنفس الصفحة -->
         @foreach($faqs as $faq)
-            <div x-show="editId === {{ $faq->id }}" x-cloak class="fixed inset-0 z-[100010] flex items-center justify-center bg-black/75 p-4" @click.self="editId = null">
+            <div x-show="editId === {{ $faq->id }}" x-cloak class="gym-faq-admin-modal fixed inset-0 z-[100010] flex items-center justify-center bg-black/75 p-4" @click.self="editId = null">
                 <section role="dialog" aria-modal="true" aria-label="تعديل السؤال" class="max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-gray-600 bg-gray-800 p-5 shadow-2xl sm:p-7">
                     <div class="mb-5 flex items-center justify-between"><h3 class="text-lg font-bold text-white">تعديل السؤال #{{ $faq->id }}</h3><button type="button" @click="editId = null" class="rounded-lg p-2 text-gray-300 hover:bg-gray-700" aria-label="إغلاق">✕</button></div>
                     <form method="POST" action="{{ route('admin.chatbot.faqs.update', $faq) }}" class="space-y-4">

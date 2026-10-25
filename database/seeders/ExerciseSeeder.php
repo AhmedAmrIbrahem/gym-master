@@ -36,7 +36,11 @@ class ExerciseSeeder extends Seeder
         ];
 
         foreach ($exercises as $exercise) {
-            Exercise::create($exercise);
+            Exercise::query()->firstOrCreate([
+                'user_id' => null,
+                'name' => $exercise['name'],
+                'target_muscle' => $exercise['target_muscle'],
+            ]);
         }
     }
 }

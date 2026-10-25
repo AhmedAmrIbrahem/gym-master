@@ -20,9 +20,32 @@
         </x-ui.panel>
 
         <!-- عرض الأنظمة الحالية -->
-        @foreach($programs as $program)
-            <x-programs.program-card :program="$program" :grouped-exercises="$groupedExercises" />
-        @endforeach
+        @forelse($programs as $program)
+            <x-programs.program-card :program="$program" />
+        @empty
+            <x-ui.panel class="p-6 text-center text-gray-300">
+                مفيش أنظمة تدريبية لسه. أضف أول نظام من النموذج اللي فوق.
+            </x-ui.panel>
+        @endforelse
+
+        @if($programs->hasPages())
+            <nav aria-label="صفحات الأنظمة التدريبية" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-700 bg-gray-800 p-3 sm:p-4">
+                <span class="text-xs font-bold text-gray-300">صفحة {{ $programs->currentPage() }} من {{ $programs->lastPage() }} — {{ $programs->total() }} نظام</span>
+                <div class="flex flex-wrap gap-2">
+                    @if($programs->onFirstPage())
+                        <span aria-disabled="true" class="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-xs text-gray-400 opacity-60">السابق</span>
+                    @else
+                        <a rel="prev" href="{{ $programs->previousPageUrl() }}" class="rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-xs font-bold text-white hover:bg-gray-600">السابق</a>
+                    @endif
+                    @if($programs->hasMorePages())
+                        <a rel="next" href="{{ $programs->nextPageUrl() }}" class="rounded-lg border border-blue-600 bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-500">التالي</a>
+                    @else
+                        <span aria-disabled="true" class="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-xs text-gray-400 opacity-60">التالي</span>
+                    @endif
+                </div>
+            </nav>
+        @endif
 
     </div>
+    {{-- Exercise picker layout and theme styles live in resources/css/app.css. --}}
 </x-app-layout>
