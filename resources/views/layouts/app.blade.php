@@ -443,6 +443,12 @@
                         إدارة المشتركين
                     </a>
 
+                    <a href="{{ route('admin.whatsapp.index') }}"
+                       class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.whatsapp.*') ? 'bg-purple-600 text-white shadow-lg' : 'text-purple-400 hover:bg-purple-900/30 hover:text-purple-200' }}">
+                        <span>💬</span>
+                        رقم إرسال واتساب
+                    </a>
+
                 @else
 
                     <!-- المشتركين -->
@@ -501,13 +507,15 @@
 
         <!-- User Profile & Logout -->
         <div class="p-4 border-t border-gray-700">
-            <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-gray-900/60 border border-gray-700/80 hover:border-blue-500/50 transition group">
+            <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-gray-900/60 border {{ request()->routeIs('profile.edit') ? 'border-blue-500' : 'border-gray-700/80' }} hover:border-blue-500/50 transition group">
 
                 <!-- بيانات الحساب -->
                 <a
                     href="{{ route('profile.edit') }}"
                     class="flex items-center gap-3 overflow-hidden flex-1 min-w-0"
-                    title="تعديل الملف الشخصي"
+                    title="إعدادات الحساب وتذكير واتساب"
+                    aria-label="إعدادات الحساب وتذكير واتساب"
+                    @if(request()->routeIs('profile.edit')) aria-current="page" @endif
                 >
                     <div class="w-10 h-10 rounded-xl overflow-hidden border border-blue-500 shrink-0 shadow-md group-hover:scale-105 transition">
                         <img
@@ -517,7 +525,7 @@
                         >
                     </div>
 
-                    <div class="truncate">
+                    <div class="truncate flex-1 min-w-0">
                         <p class="text-xs font-bold text-white truncate group-hover:text-blue-400 transition">
                             {{ Auth::user()->name }}
                         </p>
@@ -525,7 +533,9 @@
                         <p class="text-[10px] text-gray-400 truncate">
                             {{ Auth::user()->email }}
                         </p>
+                        <p class="text-[11px] text-blue-400 font-semibold mt-1">إعدادات حسابي</p>
                     </div>
+                    <svg aria-hidden="true" class="shrink-0 text-gray-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6-6 6 6 6M3 12h16"/></svg>
                 </a>
 
                 <!-- تسجيل الخروج -->

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GymReminder;
 use App\Support\DeletionProtection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,8 +18,11 @@ class ProfileController extends Controller
         $user = $request->user();
         $activeProgram = $user->workoutPrograms()->where('is_active', true)->first();
         $totalSessions = $user->workoutSessions()->count();
+        $gymReminder = $user->role === 'user'
+            ? GymReminder::where('user_id', $user->id)->first()
+            : null;
 
-        return view('profile.edit', compact('user', 'activeProgram', 'totalSessions'));
+        return view('profile.edit', compact('user', 'activeProgram', 'totalSessions', 'gymReminder'));
     }
 
     public function update(Request $request)

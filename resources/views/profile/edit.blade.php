@@ -163,6 +163,10 @@
             </form>
         </div>
 
+        @if($user->role === 'user')
+            @include('profile.partials.gym-reminder')
+        @endif
+
         <!-- 3. تغيير كلمة المرور -->
         <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl space-y-4">
             <h3 class="text-lg font-bold text-white border-b border-gray-700 pb-3 flex items-center gap-2">
