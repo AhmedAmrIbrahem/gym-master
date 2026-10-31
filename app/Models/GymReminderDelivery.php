@@ -11,6 +11,6 @@ class GymReminderDelivery extends Model
 
     protected function casts(): array
     {
-        return ['scheduled_at' => UtcDateTime::class, 'sent_at' => 'datetime'];
+        return ['scheduled_at' => UtcDateTime::class, 'gym_at' => UtcDateTime::class, 'offset_minutes' => 'integer', 'sent_at' => 'datetime'];
     }
 }

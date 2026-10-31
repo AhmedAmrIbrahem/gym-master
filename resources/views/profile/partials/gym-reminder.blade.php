@@ -51,6 +51,14 @@
 .gym-reminder-save:focus-visible{outline:3px solid #93c5fd;outline-offset:3px}
 .gym-reminder-alert{margin:0;padding:12px 14px;border-radius:12px;font-size:12px;line-height:1.9;background:rgba(245,158,11,.09);color:#fcd34d;border:1px solid rgba(245,158,11,.25)}
 .gym-reminder-errors{padding:12px 14px;border:1px solid rgba(248,113,113,.3);background:rgba(239,68,68,.08);border-radius:12px;font-size:12px;line-height:1.9;color:#fca5a5;list-style:inside;margin:0}
+.gym-reminder-leads{padding:16px;border:1px solid var(--rem-line);border-radius:15px;background:var(--rem-panel);min-width:0}
+.gym-reminder-leads-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;font-size:13px}
+.gym-reminder-lead{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:10px;align-items:end;margin-top:12px}
+.gym-reminder-lead label{font-size:12px;line-height:1.8;min-width:0}
+.gym-reminder-card .gym-reminder-lead input.gym-reminder-control{font-size:16px;text-align:left;height:46px;margin-top:6px;min-width:0}
+.gym-reminder-remove{height:44px;width:44px;border:1px solid var(--rem-line);border-radius:11px;color:var(--rem-text);background:var(--rem-bg);cursor:pointer}
+.gym-reminder-remove:disabled,.gym-reminder-save:disabled{opacity:.45;cursor:not-allowed}
+.gym-reminder-day-summary{grid-column:1/-1;margin:0;font-size:11px;color:var(--rem-muted);line-height:1.9}
 html[data-theme="light"] .gym-reminder-card{--rem-bg:#fff;--rem-panel:#f5f7fb;--rem-line:#dbe3ef;--rem-text:#172033;--rem-muted:#64748b;box-shadow:0 10px 30px rgba(30,64,175,.05)}
 html[data-theme="light"] .gym-reminder-icon{color:#2563eb}
 html[data-theme="light"] .gym-reminder-state.is-enabled,html[data-theme="light"] .gym-reminder-consent-saved{color:#047857}
@@ -108,7 +116,17 @@ html[data-theme="light"] .gym-reminder-errors{color:#b91c1c}
             </ul>
         @endif
 
-        <form method="post" action="{{ route('profile.gym-reminder.update') }}" class="gym-reminder-form">
+        @php
+            $week = $gymReminder?->scheduleForWeek() ?? array_fill(0, 7, '18:00');
+            $initialTimes = $initialSelected = [];
+            foreach (range(0, 6) as $dayIndex) {
+                $initialTimes[$dayIndex] = old('days.'.$dayIndex.'.time', $week[$dayIndex] ?? '18:00');
+                $initialSelected[$dayIndex] = (bool) old('days.'.$dayIndex.'.enabled', array_key_exists($dayIndex, $week));
+            }
+            $leads = old('reminder_offsets', $gymReminder?->offsets() ?? [30]);
+            $leads = is_array($leads) ? array_values($leads) : [30];
+        @endphp
+        <form method="post" action="{{ route('profile.gym-reminder.update') }}" class="gym-reminder-form" x-data="gymReminderForm(@js($leads), @js($initialTimes), @js($initialSelected))">
             @csrf
             @method('put')
             <input type="hidden" name="enabled" value="0">
@@ -120,25 +138,39 @@ html[data-theme="light"] .gym-reminder-errors{color:#b91c1c}
                 </span>
             </label>
             <div class="gym-reminder-cairo"><strong>توقيت مصر — القاهرة</strong><span class="gym-reminder-note">ثابت لكل المواعيد، ويُراعى التوقيت الصيفي تلقائيًا.</span></div>
-            @php($week = $gymReminder?->scheduleForWeek() ?? array_fill(0, 7, '18:00'))
+            <div class="gym-reminder-leads">
+                <div class="gym-reminder-leads-head"><strong>اختار تذكيراتك · بحد أقصى 3</strong><span x-text="offsets.length + ' / 3'"></span></div>
+                <p class="gym-reminder-note">حدد كل تذكير قبل الجيم بكام دقيقة. اكتب 0 لو عايزه وقت الموعد نفسه. تنطبق التذكيرات على كل أيامك المختارة.</p>
+                <template x-for="(offset, index) in offsets" :key="index">
+                    <div class="gym-reminder-lead">
+                        <label><span x-text="'التذكير ' + (index + 1) + ' · قبل الجيم بـ (دقيقة)'"></span>
+                            <input class="gym-reminder-control" type="number" name="reminder_offsets[]" x-model.number="offsets[index]" min="0" max="1440" step="1" inputmode="numeric" required>
+                        </label>
+                        <button type="button" class="gym-reminder-remove" @click="offsets.splice(index, 1)" :disabled="offsets.length <= 1" :aria-label="'حذف التذكير ' + (index + 1)">✕</button>
+                    </div>
+                </template>
+                <button type="button" class="gym-reminder-save" style="margin-top:14px" @click="addReminder()" :disabled="offsets.length >= 3">＋ إضافة تذكير</button>
+                <p class="gym-reminder-note" style="margin-top:10px">مثال: جيم 5 مساءً وتذكيران قبلها بـ60 و15 دقيقة ← الرسائل 4 و4:45 مساءً.</p>
+            </div>
             <fieldset class="gym-reminder-week">
-                <legend class="gym-reminder-caption" style="margin-bottom:10px">أيام الإرسال · ألغِ علامة أي يوم لا تريد رسالة فيه</legend>
+                <legend class="gym-reminder-caption" style="margin-bottom:10px">أيام الجيم وموعده · ألغِ علامة يوم الراحة</legend>
                 @foreach(\App\Models\GymReminder::DAYS as $day => $label)
                     <div class="gym-reminder-day">
                         <input type="hidden" name="days[{{ $day }}][enabled]" value="0">
                         <label for="gym-day-{{ $day }}">
-                            <input id="gym-day-{{ $day }}" type="checkbox" name="days[{{ $day }}][enabled]" value="1" @checked(old('days.'.$day.'.enabled', array_key_exists($day, $week)))>
+                            <input id="gym-day-{{ $day }}" type="checkbox" name="days[{{ $day }}][enabled]" value="1" x-model="selected[{{ $day }}]" @checked(old('days.'.$day.'.enabled', array_key_exists($day, $week)))>
                             {{ $label }}
                         </label>
-                        <input type="time" name="days[{{ $day }}][time]" required value="{{ old('days.'.$day.'.time', $week[$day] ?? '18:00') }}" class="gym-reminder-control" aria-label="موعد تذكير {{ $label }} بتوقيت القاهرة">
+                        <input type="time" name="days[{{ $day }}][time]" x-model="times[{{ $day }}]" required value="{{ old('days.'.$day.'.time', $week[$day] ?? '18:00') }}" class="gym-reminder-control" aria-label="موعد الجيم {{ $label }} بتوقيت القاهرة">
+                        <p class="gym-reminder-day-summary" x-show="selected[{{ $day }}]" x-text="daySummary({{ $day }})"></p>
                     </div>
                 @endforeach
             </fieldset>
-            <p class="gym-reminder-note">اختر موعدًا لاحقًا لوقت الحفظ. تغيير موعد اليوم إلى وقت لاحق يسمح بتذكير جديد؛ حفظ نفس الإعدادات لا يعيد الإرسال.</p>
+            <p class="gym-reminder-note">التذكيرات التي مر وقتها لا تُرسل بأثر رجعي. التعديل لا يكرر رسالة اتبعتت لنفس الموعد، ولا يسمح بأكثر من 3 تذكيرات ليوم الجيم حتى مع تغيير الإعدادات. الوقت القديم محفوظ كتذكير وقت الموعد حتى تعدّله.</p>
             <label class="gym-reminder-consent" for="gym-reminder-opt-in">
                 <input id="gym-reminder-opt-in" type="checkbox" name="opt_in" value="1" @checked(old('opt_in', false))>
                 <span>
-                    أوافق على استقبال تذكير الجيم عبر واتساب على رقمي المسجل.
+                    أوافق على استقبال تذكيرات الجيم المختارة عبر واتساب على رقمي المسجل، بحد أقصى 3 لكل يوم جيم.
                     <small>علّم الخانة عند التفعيل أو تعديل الأيام والمواعيد. الإيقاف لا يحتاج موافقة.</small>
                     @if($gymReminder?->enabled && $gymReminder?->consented_at && $gymReminder?->consent_phone === \App\Services\GymReminders\PhoneNumber::normalize($user->phone))
                         <span class="gym-reminder-consent-saved">✓ موافقتك محفوظة للرقم الحالي؛ الخانة ترجع فارغة بعد الحفظ.</span>
@@ -155,3 +187,19 @@ html[data-theme="light"] .gym-reminder-errors{color:#b91c1c}
         </form>
     </div>
 </section>
+<script>
+function gymReminderForm(offsets, times, selected) {
+    return {
+        offsets: offsets.map(Number), times, selected,
+        addReminder() {
+            if (this.offsets.length >= 3) return;
+            this.offsets.push([30, 60, 15, 0].find(value => !this.offsets.includes(value)) ?? 5);
+        },
+        daySummary(day) {
+            const time = this.times[day];
+            if (!/^\d{2}:\d{2}$/.test(time || '')) return '';
+            return 'التذكيرات: ' + this.offsets.map(value => Number(value) === 0 ? 'وقت الموعد' : 'قبله بـ' + value + ' دقيقة').join(' · ');
+        }
+    };
+}
+</script>

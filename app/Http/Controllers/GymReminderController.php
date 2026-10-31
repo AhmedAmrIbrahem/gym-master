@@ -21,7 +21,14 @@ class GymReminderController extends Controller
             'days.*' => ['required', 'array:enabled,time'],
             'days.*.enabled' => ['required', 'boolean'],
             'days.*.time' => ['required', 'date_format:H:i'],
+            'reminder_offsets' => ['sometimes', 'required', 'array', 'min:1', 'max:3'],
+            'reminder_offsets.*' => ['required', 'integer', 'between:0,1440', 'distinct'],
             'opt_in' => [Rule::excludeIf(! $request->boolean('enabled')), 'required', 'accepted'],
+        ], [
+            'reminder_offsets.*' => 'اختر من تذكير واحد إلى 3 تذكيرات فقط.',
+            'reminder_offsets.*.distinct' => 'كل تذكير لازم يكون في توقيت مختلف.',
+            'reminder_offsets.*.between' => 'مدة التذكير من 0 إلى 1440 دقيقة قبل الجيم.',
+            'reminder_offsets.*.integer' => 'اكتب عدد دقائق صحيحًا لكل تذكير.',
         ]);
         $phone = PhoneNumber::normalize($request->user()->phone);
         if ($request->boolean('enabled') && ! $phone) {
@@ -48,10 +55,16 @@ class GymReminderController extends Controller
             $oldSchedule = $reminder->exists ? $reminder->scheduleForWeek() : [];
             ksort($oldSchedule, SORT_NUMERIC);
             $enabled = $request->boolean('enabled');
+            $offsets = array_map('intval', $request->input('reminder_offsets', $reminder->offsets()));
+            rsort($offsets, SORT_NUMERIC);
+            $oldOffsets = $reminder->offsets();
+            rsort($oldOffsets, SORT_NUMERIC);
             $changed = ! $reminder->exists || $oldSchedule !== $schedule || $reminder->enabled !== $enabled
+                || $oldOffsets !== $offsets
                 || $reminder->consent_phone !== ($enabled ? $phone : null);
             $reminder->fill([
                 'enabled' => $enabled, 'weekly_schedule' => $schedule,
+                'reminder_offsets' => $offsets,
                 'time' => $schedule === [] ? '18:00' : reset($schedule),
                 'timezone' => GymReminder::TIMEZONE,
                 'consent_phone' => $enabled ? $phone : null,

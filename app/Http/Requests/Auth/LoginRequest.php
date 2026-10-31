@@ -2,12 +2,12 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Services\Auth\LoginIdentity;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
@@ -28,7 +28,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'email' => ['required', 'string', 'max:254'],
             'password' => ['required', 'string'],
         ];
     }
@@ -42,11 +42,12 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $userId = app(LoginIdentity::class)->userId($this->string('email')->toString());
+        if (! Auth::attempt(['id' => $userId, 'password' => $this->input('password')], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'email' => 'البريد الإلكتروني أو رقم الهاتف أو كلمة المرور غير صحيحة.',
             ]);
         }
 
@@ -69,10 +70,7 @@ class LoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
+            'email' => 'محاولات دخول كثيرة. حاول مرة أخرى بعد '.$seconds.' ثانية.',
         ]);
     }
 
@@ -81,6 +79,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return hash('sha256', LoginIdentity::canonical($this->string('email')->toString())).'|'.$this->ip();
     }
 }

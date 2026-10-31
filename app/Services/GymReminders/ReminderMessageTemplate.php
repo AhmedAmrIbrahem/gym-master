@@ -16,16 +16,16 @@ class ReminderMessageTemplate
         return GymReminderMessage::find(1)?->text ?? self::DEFAULT_TEXT;
     }
 
-    public static function values(string $name, CarbonImmutable $scheduled): array
+    public static function values(string $name, CarbonImmutable $scheduled, int $minutesBefore = 0): array
     {
         $local = $scheduled->setTimezone(GymReminder::TIMEZONE);
 
-        return ['{name}' => $name, '{time}' => $local->format('H:i'), '{day}' => GymReminder::DAYS[$local->dayOfWeek], '{date}' => $local->toDateString(), '{timezone}' => 'القاهرة'];
+        return ['{name}' => $name, '{time}' => $local->format('H:i'), '{day}' => GymReminder::DAYS[$local->dayOfWeek], '{date}' => $local->toDateString(), '{timezone}' => 'القاهرة', '{minutes_before}' => (string) $minutesBefore];
     }
 
-    public static function render(User $user, CarbonImmutable $scheduled): string
+    public static function render(User $user, CarbonImmutable $scheduled, int $minutesBefore = 0): string
     {
-        return strtr(self::current(), self::values($user->name, $scheduled));
+        return strtr(self::current(), self::values($user->name, $scheduled, $minutesBefore));
     }
 
     public static function fitsProvider(string $text): bool

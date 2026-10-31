@@ -15,11 +15,16 @@ class GymReminder extends Model
 
     protected function casts(): array
     {
-        return ['enabled' => 'boolean', 'consented_at' => 'datetime', 'weekly_schedule' => 'array', 'eligible_after' => UtcDateTime::class];
+        return ['enabled' => 'boolean', 'consented_at' => 'datetime', 'weekly_schedule' => 'array', 'reminder_offsets' => 'array', 'eligible_after' => UtcDateTime::class];
     }
 
     public function scheduleForWeek(): array
     {
         return $this->weekly_schedule ?? array_fill(0, 7, $this->time);
+    }
+
+    public function offsets(): array
+    {
+        return $this->reminder_offsets ?? [0];
     }
 }

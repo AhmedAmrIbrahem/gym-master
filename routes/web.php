@@ -6,6 +6,7 @@ use App\Http\Controllers\BodyMeasurementController;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExerciseController;
+use App\Http\Controllers\FoodPhotoMealController;
 use App\Http\Controllers\GymReminderController;
 use App\Http\Controllers\NutritionController;
 use App\Http\Controllers\ProfileController;
@@ -55,6 +56,8 @@ Route::middleware(['auth', 'active_account'])->group(function () {
         Route::delete('/measurements/{measurement}', [BodyMeasurementController::class, 'destroy'])->name('measurements.destroy');
 
         // التغذية
+        Route::post('/chatbot/food-drafts/{draft}/save', [FoodPhotoMealController::class, 'store'])
+            ->whereUuid('draft')->middleware('throttle:10,1,food-photo-save:')->name('chatbot.food-drafts.save');
         Route::get('/nutrition/foods/search', [NutritionController::class, 'searchFoods'])
             ->middleware('throttle:120,1')->name('nutrition.searchFoods');
         Route::get('/nutrition', [NutritionController::class, 'index'])->name('nutrition.index');

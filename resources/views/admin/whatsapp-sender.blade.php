@@ -59,10 +59,10 @@
             @method('put')
             <label for="gym-message-template" class="block text-sm font-bold text-white">محتوى الرسالة</label>
             <textarea id="gym-message-template" name="text" required maxlength="1000" rows="5" class="w-full bg-gray-900 border-gray-700 text-white rounded-xl p-4 text-sm leading-relaxed">{{ old('text', $messageTemplate) }}</textarea>
-            <p class="text-xs text-gray-400" dir="rtl">المتغيرات المتاحة: <bdi>{name}</bdi> الاسم · <bdi>{time}</bdi> الساعة · <bdi>{day}</bdi> اليوم · <bdi>{date}</bdi> التاريخ · <bdi>{timezone}</bdi> القاهرة.</p>
+            <p class="text-xs text-gray-400" dir="rtl">المتغيرات المتاحة: <bdi>{name}</bdi> الاسم · <bdi>{time}</bdi> موعد الجيم · <bdi>{day}</bdi> يوم الجيم · <bdi>{date}</bdi> تاريخ الجيم · <bdi>{timezone}</bdi> القاهرة · <bdi>{minutes_before}</bdi> عدد الدقائق قبل الجيم (0 عند الموعد). كل مشترك يختار حتى 3 تذكيرات.</p>
             <div class="bg-gray-900 border border-gray-700 rounded-xl p-4 space-y-2">
-                <p class="text-xs text-gray-400">مثال للنص المحفوظ (المتغيرات تُستبدل تلقائيًا عند الإرسال):</p>
-                <p class="text-sm text-gray-200 whitespace-pre-wrap">{{ strtr($messageTemplate, \App\Services\GymReminders\ReminderMessageTemplate::values('أحمد', \Carbon\CarbonImmutable::now('Africa/Cairo')->setTime(18, 0))) }}</p>
+                <p class="text-xs text-gray-400">مثال للنص المحفوظ: جيم الساعة 18:00 وتذكير قبله بـ30 دقيقة (المتغيرات تُستبدل تلقائيًا عند الإرسال):</p>
+                <p class="text-sm text-gray-200 whitespace-pre-wrap">{{ strtr($messageTemplate, \App\Services\GymReminders\ReminderMessageTemplate::values('أحمد', \Carbon\CarbonImmutable::now('Africa/Cairo')->setTime(18, 0), 30)) }}</p>
             </div>
             <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-5 py-2.5 rounded-xl">حفظ نص الرسالة</button>
         </form>

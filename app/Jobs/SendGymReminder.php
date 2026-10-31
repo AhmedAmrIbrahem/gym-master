@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\GymReminder;
 use App\Models\GymReminderDelivery;
 use App\Models\User;
+use App\Services\GymReminders\GymReminderSchedule;
 use App\Services\GymReminders\PhoneNumber;
 use App\Services\GymReminders\ReminderMessageTemplate;
 use App\Services\GymReminders\WhatsAppSender;
@@ -30,8 +31,17 @@ class SendGymReminder implements ShouldQueue
     public function handle(WhatsAppSender $sender): void
     {
         $payload = DB::transaction(function () {
+            $ownerId = GymReminderDelivery::whereKey($this->deliveryId)->value('user_id');
+            if (! $ownerId) {
+                return null;
+            }
+            // Consistent lock order with dispatcher/settings; serialize schedule eligibility checks.
+            User::whereKey($ownerId)->lockForUpdate()->first();
             $delivery = GymReminderDelivery::lockForUpdate()->find($this->deliveryId);
             if (! $delivery || $delivery->status !== 'pending') {
+                return null;
+            }
+            if ($delivery->scheduled_at->isAfter(now('UTC'))) {
                 return null;
             }
             $reminder = GymReminder::where('user_id', $delivery->user_id)->first();
@@ -45,13 +55,17 @@ class SendGymReminder implements ShouldQueue
 
                 return null;
             }
-            $local = $delivery->scheduled_at->setTimezone(GymReminder::TIMEZONE);
-            if (($reminder->scheduleForWeek()[$local->dayOfWeek] ?? null) !== $local->format('H:i')) {
+            $gymAt = $delivery->gym_at ?? $delivery->scheduled_at;
+            $date = $gymAt->setTimezone(GymReminder::TIMEZONE)->toDateString();
+            $expected = GymReminderSchedule::gymAt($reminder, $date);
+            if (! $expected || ! $expected->equalTo($gymAt)
+                || ! in_array($delivery->offset_minutes, $reminder->offsets(), true)
+                || ! $gymAt->subMinutes($delivery->offset_minutes)->equalTo($delivery->scheduled_at)) {
                 $delivery->update(['status' => 'skipped', 'reason' => 'day_or_time_changed']);
 
                 return null;
             }
-            $text = $delivery->message_text ?? ReminderMessageTemplate::render($user, $delivery->scheduled_at);
+            $text = $delivery->message_text ?? ReminderMessageTemplate::render($user, $gymAt, $delivery->offset_minutes);
             $validLength = ReminderMessageTemplate::fitsProvider($text);
             if (! $validLength || trim($text) === '') {
                 $delivery->update(['status' => 'failed', 'reason' => 'invalid_message_length']);

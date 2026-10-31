@@ -30,11 +30,11 @@ class WhatsAppSenderController extends Controller
         $data = $request->validateWithBag('whatsappMessage', [
             'text' => ['bail', 'required', 'string', 'max:1000', function ($attribute, $value, $fail) {
                 preg_match_all('/\{[^{}]*\}/u', $value, $matches);
-                $allowed = ['{name}', '{time}', '{day}', '{date}', '{timezone}'];
+                $allowed = ['{name}', '{time}', '{day}', '{date}', '{timezone}', '{minutes_before}'];
                 if (array_diff($matches[0], $allowed)) {
-                    $fail('استخدم المتغيرات المتاحة فقط: {name}، {time}، {day}، {date}، {timezone}.');
+                    $fail('استخدم المتغيرات المتاحة فقط: {name}، {time}، {day}، {date}، {timezone}، {minutes_before}.');
                 }
-                $worstCase = strtr($value, ReminderMessageTemplate::values(str_repeat('😀', 255), CarbonImmutable::parse('2026-11-04 18:00', 'Africa/Cairo')));
+                $worstCase = strtr($value, ReminderMessageTemplate::values(str_repeat('😀', 255), CarbonImmutable::parse('2026-11-04 18:00', 'Africa/Cairo'), 1440));
                 if (! ReminderMessageTemplate::fitsProvider($worstCase)) {
                     $fail('الرسالة طويلة بعد استبدال المتغيرات. اختصر النص أو قلل تكرار اسم المستخدم.');
                 }
