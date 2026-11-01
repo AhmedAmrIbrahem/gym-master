@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Mail\WelcomeUserMail;
 use App\Models\User;
 use App\Models\WorkoutSession;
+use App\Support\DeletionProtection;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
@@ -143,6 +145,11 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
         abort_if($user->isSuperAdmin(), 403);
+
+        if ($reason = DeletionProtection::userReason($user)) {
+            return back()->with('error', $reason);
+        }
+
         $user->delete();
 
         return redirect()->back()->with('success', 'تم حذف المشترك بنجاح!');
@@ -158,7 +165,7 @@ class UserController extends Controller
 
         $user->forceFill([
             'password' => Hash::make($validated['password']),
-            'remember_token' => \Illuminate\Support\Str::random(60),
+            'remember_token' => Str::random(60),
         ])->save();
 
         return back()

@@ -20,7 +20,7 @@ class ArabicValidationOldInputTest extends TestCase
         $response->assertRedirect('/login')
             ->assertSessionHasInput('email', 'member@example.com')
             ->assertSessionMissing('_old_input.password');
-        $this->assertSame('البريد الإلكتروني أو كلمة المرور غير صحيحة.', session('errors')->first('email'));
+        $this->assertSame('البريد الإلكتروني أو رقم الهاتف أو كلمة المرور غير صحيحة.', session('errors')->first('email'));
     }
 
     public function test_admin_member_form_keeps_safe_fields_without_passwords(): void

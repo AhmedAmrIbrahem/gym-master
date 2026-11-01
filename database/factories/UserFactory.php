@@ -28,6 +28,10 @@ class UserFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
+            // Match the database default: newly created users are active.
+            // Otherwise an in-memory factory model reads a null value until refresh.
+            'is_active' => true,
+            'role' => 'user',
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];

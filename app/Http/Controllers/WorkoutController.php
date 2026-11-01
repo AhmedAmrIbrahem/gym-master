@@ -10,6 +10,7 @@ use App\Models\WorkoutLog;
 use App\Models\WorkoutSession;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class WorkoutController extends Controller
 {
@@ -28,35 +29,45 @@ class WorkoutController extends Controller
         $this->authorizeDay($day);
         $day->load('dayExercises.exercise');
 
-        // البحث عن جلسة اليوم إن وجدت
+        // Use the session's recorded date (indexed), not DATE(created_at).
         $todaySession = WorkoutSession::where('user_id', auth()->id())
             ->where('workout_day_id', $day->id)
-            ->whereDate('created_at', now()->toDateString())
+            ->where('date', now()->toDateString())
             ->first();
 
         $previousLogs = [];
         $savedTodayLogs = [];
+        $exerciseIds = $day->dayExercises->pluck('exercise_id')->unique()->values()->all();
 
-        foreach ($day->dayExercises as $dayExercise) {
-            // جلب آخر أداء سابق للتمرين
-            $lastLog = WorkoutLog::where('exercise_id', $dayExercise->exercise_id)
-                ->whereHas('workoutSession', function ($q) {
-                    $q->where('user_id', auth()->id());
-                })
-                ->when($todaySession, function ($q) use ($todaySession) {
-                    $q->where('workout_session_id', '!=', $todaySession->id);
-                })
-                ->orderBy('created_at', 'desc')
-                ->first();
+        if ($exerciseIds !== []) {
+            // Rank logs per exercise in SQL: one previous log per exercise, even
+            // when a user has years of historical sets. MySQL 8+/SQLite support
+            // ROW_NUMBER(), and the user scope prevents cross-account leakage.
+            $rankedLogs = DB::table('workout_logs as candidate_logs')
+                ->join('workout_sessions as sessions', 'sessions.id', '=', 'candidate_logs.workout_session_id')
+                ->where('sessions.user_id', auth()->id())
+                ->whereIn('candidate_logs.exercise_id', $exerciseIds)
+                ->when($todaySession, fn ($query) => $query->where('candidate_logs.workout_session_id', '!=', $todaySession->id))
+                ->select('candidate_logs.id')
+                ->selectRaw('ROW_NUMBER() OVER (PARTITION BY candidate_logs.exercise_id ORDER BY candidate_logs.created_at DESC, candidate_logs.id DESC) AS row_position');
 
-            $previousLogs[$dayExercise->exercise_id] = $lastLog;
+            $latestIds = DB::query()->fromSub($rankedLogs, 'ranked_logs')
+                ->select('id')
+                ->where('row_position', 1);
 
-            // جلب أداء اليوم لو كان اتسجل قبل كده
+            $previousLogs = WorkoutLog::whereIn('id', $latestIds)
+                ->get()
+                ->keyBy('exercise_id')
+                ->all();
+
+            // Retrieve all sets saved today in a single query, not per exercise.
             if ($todaySession) {
-                $savedTodayLogs[$dayExercise->exercise_id] = WorkoutLog::where('workout_session_id', $todaySession->id)
-                    ->where('exercise_id', $dayExercise->exercise_id)
+                $savedTodayLogs = WorkoutLog::where('workout_session_id', $todaySession->id)
+                    ->whereIn('exercise_id', $exerciseIds)
                     ->orderBy('set_number')
-                    ->get();
+                    ->get()
+                    ->groupBy('exercise_id')
+                    ->all();
             }
         }
 

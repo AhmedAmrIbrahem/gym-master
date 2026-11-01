@@ -35,6 +35,18 @@ jobs:
           cp .env.example .env
           php artisan key:generate
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend assets
+        run: npm run build
+
       - name: Check PHP syntax
         run: |
           find app routes tests database/migrations -type f -name '*.php' -print0 | xargs -0 -n1 php -l
@@ -47,15 +59,3 @@ jobs:
 
       - name: Run automated tests
         run: php artisan test
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-
-      - name: Install frontend dependencies
-        run: npm ci
-
-      - name: Build frontend assets
-        run: npm run build

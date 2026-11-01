@@ -669,3 +669,266 @@ html[data-theme="light"] [role="alert"].bg-red-900\/50 {
 }
 html[data-theme="light"] [role="alert"].bg-red-950 *,
 html[data-theme="light"] [role="status"].bg-emerald-950 * { color: inherit !important; }
+
+/* UX & mobile finishing touches — light mode only */
+html[data-theme="light"] .gym-pagination nav { color:#334155; }
+html[data-theme="light"] .gym-pagination nav :is(span,a) { border-color:#d6e2f2 !important; }
+html[data-theme="light"] .gym-pagination nav a { color:#1d4ed8 !important; background:#fff !important; }
+html[data-theme="light"] .gym-pagination nav span[aria-current="page"] > span { background:#dbeafe !important; color:#1d4ed8 !important; }
+html[data-theme="light"] .gym-pagination nav span[aria-disabled="true"] > span { background:#f8fafc !important; color:#64748b !important; }
+html[data-theme="light"] .gym-exercise-popover { background:#fff !important; border-color:#cbd5e1 !important; box-shadow:0 16px 35px rgba(15,23,42,.12) !important; }
+html[data-theme="light"] .gym-exercise-option { color:#172033 !important; }
+html[data-theme="light"] .gym-exercise-option:hover { background:#eff6ff !important; color:#1d4ed8 !important; }
+html[data-theme="light"] .gym-exercise-trigger { background:#fff !important; color:#172033 !important; border-color:#cbd5e1 !important; }
+html[data-theme="light"] .gym-program-card { box-shadow:0 8px 25px rgba(15,23,42,.055) !important; }
+html[data-theme="light"] .gym-day-card { background:#f8fafc !important; border-color:#d7e2ef !important; }
+.gym-exercise-popover { min-width:0; }
+.gym-exercise-option:focus-visible { outline:2px solid #3b82f6; outline-offset:-2px; }
+@media (max-width:640px) {
+  .gym-exercise-popover { max-width:calc(100vw - 56px); }
+  .gym-program-card { padding:14px !important; }
+  .gym-program-card > .grid { grid-template-columns:minmax(0,1fr) !important; }
+  .gym-workout-history-table, .gym-workout-history-table tbody, .gym-workout-history-table tr, .gym-workout-history-table td { display:block; width:100%; min-width:0; }
+  .gym-workout-history-table thead { display:none; }
+  .gym-workout-history-table tr { padding:10px 0; border-bottom:1px solid #374151; }
+  .gym-workout-history-table td { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:7px 6px; min-width:0; }
+  .gym-workout-history-table td::before { content:attr(data-label); width:76px; flex:0 0 76px; font-size:11px; font-weight:700; color:#94a3b8; }
+  .gym-workout-history-table td > div { flex:1; min-width:0; }
+  html[data-theme="light"] .gym-workout-history-table tr { border-color:#d7e2ef; }
+  html[data-theme="light"] .gym-workout-history-table td::before { color:#52657d; }
+  .gym-pagination nav { max-width:100%; overflow-x:auto; }
+}
+
+
+/* Compact workout cards and readable exercise history on narrow phones */
+.gym-program-card > .grid { align-items: start; }
+.gym-day-card { min-height: 0; height: auto; }
+.gym-day-card > div:first-child { min-height: 0; }
+.gym-day-card ul { max-height: 25rem; overflow-y: auto; scrollbar-width: thin; }
+@media (min-width: 768px) {
+  .gym-program-card > .grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); }
+}
+@media (max-width: 640px) {
+  .mobile-content .gym-workout-history-table { display: block !important; width: 100% !important; min-width: 0 !important; table-layout: auto !important; }
+  .mobile-content .gym-workout-history-table thead { display: none !important; }
+  .mobile-content .gym-workout-history-table tbody { display: block !important; width: 100%; min-width: 0; }
+  .mobile-content .gym-workout-history-table tr { display: block !important; min-width: 0; width: 100%; border-bottom: 1px solid #475569; }
+  .mobile-content .gym-workout-history-table td { display: grid !important; grid-template-columns: 4.5rem minmax(0,1fr); gap: .6rem; width: 100%; min-width: 0 !important; padding: .7rem .35rem; white-space: normal !important; text-align: right; align-items: start; }
+  .mobile-content .gym-workout-history-table td::before { width: auto; min-width: 0; overflow-wrap: anywhere; }
+  .mobile-content .gym-workout-history-table td > div { min-width: 0; width: 100%; display: flex; flex-wrap: wrap; gap: .4rem; }
+  .mobile-content .gym-workout-history-table td > div > div { white-space: normal; min-width: 0; max-width: 100%; padding: .45rem .55rem; flex-wrap: wrap; }
+  .mobile-content .gym-workout-history-table td, .mobile-content .gym-workout-history-table td * { overflow-wrap: anywhere; }
+  .gym-program-card > .grid { grid-template-columns: minmax(0,1fr) !important; }
+  .gym-day-card ul { max-height: none; overflow: visible; }
+}
+html[data-theme="light"] .gym-day-card { background: #f8fbff !important; border-color: #d5e2f1 !important; }
+html[data-theme="light"] .gym-workout-history-table td::before { color: #52657d; }
+
+/* ============================================================================
+   Mobile UX / phase 2 — one consistent training picker and nutrition heading.
+   The exercise modal is teleported to <body>, so no program/day card can clip it.
+   These rules are component-scoped; existing desktop layout and app logic remain.
+   ============================================================================ */
+.gym-exercise-dialog-open { overflow: hidden !important; }
+.gym-exercise-popover-up {
+  bottom: calc(100% + 8px);
+  top: auto;
+  margin-top: 0 !important;
+}
+.gym-exercise-results {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior: contain;
+}
+.gym-exercise-results::-webkit-scrollbar { display: none; width: 0; height: 0; }
+.gym-exercise-popover { max-width: 100%; box-sizing: border-box; }
+.gym-exercise-popover .gym-exercise-option { min-height: 38px; }
+.gym-exercise-trigger { min-height: 44px; }
+
+.gym-exercise-mobile-layer {
+  --gym-sheet-bg: #182538;
+  --gym-sheet-card: #22324a;
+  --gym-sheet-ink: #f8fafc;
+  --gym-sheet-muted: #b6c5da;
+  --gym-sheet-line: #3c516d;
+  --gym-sheet-accent: #93c5fd;
+  position: fixed !important;
+  inset-inline: 0;
+  bottom: auto;
+  width: 100%;
+  z-index: 10080;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  isolation: isolate;
+  overflow: hidden;
+  direction: rtl;
+}
+.gym-exercise-mobile-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 15, 28, .65);
+  border: 0;
+  cursor: default;
+}
+.gym-exercise-mobile-sheet {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 580px;
+  max-height: min(90%, 640px);
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px 16px max(16px, env(safe-area-inset-bottom));
+  background: var(--gym-sheet-bg);
+  border: 1px solid var(--gym-sheet-line);
+  border-bottom: 0;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -15px 50px rgba(0,0,0,.26);
+  color: var(--gym-sheet-ink);
+  overflow: hidden;
+}
+.gym-exercise-mobile-handle {
+  align-self: center;
+  width: 42px;
+  height: 4px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  background: var(--gym-sheet-line);
+}
+.gym-exercise-mobile-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.gym-exercise-mobile-title { font-size: 16px; font-weight: 800; color: var(--gym-sheet-ink); line-height: 1.6; }
+.gym-exercise-mobile-subtitle { font-size: 12px; color: var(--gym-sheet-muted); line-height: 1.6; }
+.gym-exercise-mobile-close {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  border: 1px solid var(--gym-sheet-line);
+  color: var(--gym-sheet-ink);
+  background: var(--gym-sheet-card);
+  font-size: 15px;
+}
+.gym-exercise-mobile-search {
+  flex: 0 0 auto;
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  min-width: 0;
+  font-size: 16px !important;
+  border-radius: 12px;
+  border: 1px solid var(--gym-sheet-line);
+  background: var(--gym-sheet-card);
+  color: var(--gym-sheet-ink);
+}
+.gym-exercise-mobile-results {
+  display: block;
+  min-height: 65px;
+  max-height: none !important;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 5px;
+}
+.gym-exercise-mobile-results .gym-exercise-group { padding: 4px 0; }
+.gym-exercise-mobile-results .gym-exercise-group-title {
+  position: sticky;
+  top: 0;
+  padding: 9px 9px 6px;
+  color: var(--gym-sheet-accent);
+  font-size: 12px;
+  font-weight: 800;
+  background: var(--gym-sheet-bg);
+}
+.gym-exercise-mobile-option {
+  display: block;
+  width: 100%;
+  min-height: 46px;
+  padding: 12px;
+  margin-bottom: 3px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: var(--gym-sheet-ink);
+  text-align: right;
+  font-size: 14px;
+  line-height: 1.65;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.gym-exercise-mobile-option:active,
+.gym-exercise-mobile-option[aria-selected="true"] {
+  background: var(--gym-sheet-card) !important;
+  border-color: var(--gym-sheet-line);
+  color: var(--gym-sheet-accent) !important;
+}
+.gym-exercise-mobile-message {
+  padding: 16px 8px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--gym-sheet-muted);
+}
+.gym-exercise-mobile-retry { padding: 8px 16px; color: var(--gym-sheet-accent); font-weight: 800; text-decoration: underline; }
+.gym-exercise-mobile-sheet :is(button,input):focus-visible { outline: 2px solid #60a5fa; outline-offset: 2px; }
+html[data-theme="light"] .gym-exercise-mobile-layer {
+  --gym-sheet-bg: #fff;
+  --gym-sheet-card: #f1f6fd;
+  --gym-sheet-ink: #1c2c42;
+  --gym-sheet-muted: #50627d;
+  --gym-sheet-line: #d7e3f1;
+  --gym-sheet-accent: #215dcc;
+}
+html[data-theme="light"] .gym-exercise-mobile-search {
+  background: var(--gym-sheet-card) !important;
+  color: var(--gym-sheet-ink) !important;
+  border-color: var(--gym-sheet-line) !important;
+}
+html[data-theme="light"] .gym-exercise-mobile-option {
+  color: var(--gym-sheet-ink) !important;
+}
+html[data-theme="light"] .gym-exercise-mobile-close {
+  background: var(--gym-sheet-card) !important;
+  color: var(--gym-sheet-ink) !important;
+  border-color: var(--gym-sheet-line) !important;
+}
+
+/* Nutrition heading: title and history link get their own breathing room on phones. */
+.gym-nutrition-page-heading { min-width: 0; }
+.gym-nutrition-page-heading h2 { min-width: 0; }
+.gym-nutrition-history-link { min-height: 42px; flex-shrink: 0; text-align: center; }
+html[data-theme="light"] .gym-nutrition-history-link {
+  background: #eef5ff !important;
+  border-color: #c7dcfb !important;
+  color: #2057bc !important;
+  box-shadow: none;
+}
+html[data-theme="light"] .gym-nutrition-history-link:hover { background: #e0edff !important; }
+@media (max-width: 767px) {
+  .gym-nutrition-page-heading { align-items: stretch; flex-direction: column; gap: 12px; width: 100%; }
+  .gym-nutrition-page-heading h2 { font-size: clamp(17px, 4.7vw, 21px) !important; line-height: 1.65; overflow-wrap: anywhere; }
+  .gym-nutrition-history-link { align-self: stretch; justify-content: center; min-height: 44px; font-size: 13px; }
+  .gym-nutrition-day-controls { flex-wrap: wrap; gap: 9px; width: 100%; }
+  .gym-nutrition-day-controls > div { max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gym-exercise-mobile-layer *, .gym-exercise-popover * { scroll-behavior: auto !important; }
+}
+
+/* Keep the picker usable when the phone's keyboard leaves very little height. */
+.gym-exercise-mobile-layer-compact .gym-exercise-mobile-sheet {
+  max-height: calc(100% - 6px);
+  min-height: 0;
+  gap: 7px;
+  padding-top: 7px;
+}
+.gym-exercise-mobile-layer-compact .gym-exercise-mobile-handle,
+.gym-exercise-mobile-layer-compact .gym-exercise-mobile-subtitle { display: none; }
+.gym-exercise-mobile-layer-compact .gym-exercise-mobile-results { min-height: 32px; }
+
+/* Alpine hides overlays until its component has initialized. */
+[x-cloak] { display: none !important; }

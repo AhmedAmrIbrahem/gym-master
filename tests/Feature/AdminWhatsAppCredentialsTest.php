@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\WelcomeUserMail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -32,7 +33,7 @@ class AdminWhatsAppCredentialsTest extends TestCase
                 && $data['password'] === 'ExamplePassword123!';
         });
         $this->assertTrue(Hash::check('ExamplePassword123!', $member->password));
-        Mail::assertSent(\App\Mail\WelcomeUserMail::class);
+        Mail::assertSent(WelcomeUserMail::class);
     }
 
     public function test_admin_password_reset_makes_only_the_new_password_available_for_whatsapp(): void

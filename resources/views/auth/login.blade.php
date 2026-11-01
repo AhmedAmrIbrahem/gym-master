@@ -16,18 +16,19 @@
         <form method="POST" action="{{ route('login') }}" class="space-y-4">
             @csrf
 
-            <!-- البريد الإلكتروني -->
+            <!-- نفس الحقل يقبل الإيميل أو رقم الهاتف المسجل -->
             <div>
-                <label for="email" class="block text-xs font-bold text-gray-300 mb-1">البريد الإلكتروني</label>
-                <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username"
+                <label for="email" class="block text-xs font-bold text-gray-300 mb-1">البريد الإلكتروني أو رقم الهاتف</label>
+                <input id="email" type="text" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" maxlength="254" autocapitalize="none" spellcheck="false" dir="auto" aria-describedby="login-identity-hint" placeholder="الإيميل أو رقم واتساب المسجّل" style="font-size:16px;min-height:48px"
                        class="w-full bg-gray-900 border-gray-700 text-white placeholder-gray-500 rounded-xl text-sm focus:border-blue-500 focus:ring-blue-500 p-3">
                 <x-input-error :messages="$errors->get('email')" class="mt-2 text-red-400 text-xs" />
+                <p id="login-identity-hint" class="text-xs text-gray-400 mt-2" style="line-height:1.8">استخدم رقم الهاتف المسجّل في حسابك، أو بريدك الإلكتروني، مع نفس كلمة المرور</p>
             </div>
 
             <!-- كلمة المرور -->
             <div>
                 <label for="password" class="block text-xs font-bold text-gray-300 mb-1">كلمة المرور</label>
-                <input id="password" type="password" name="password" required autocomplete="current-password"
+                <input id="password" type="password" name="password" required autocomplete="current-password" style="font-size:16px;min-height:48px"
                        class="w-full bg-gray-900 border-gray-700 text-white placeholder-gray-500 rounded-xl text-sm focus:border-blue-500 focus:ring-blue-500 p-3">
                 <x-input-error :messages="$errors->get('password')" class="mt-2 text-red-400 text-xs" />
             </div>
