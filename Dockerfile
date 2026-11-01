@@ -1,44 +1,49 @@
-# استخدام صورة PHP رسمية مع Apache
-FROM php:8.2-apache
+FROM node:22-bookworm-slim AS frontend
 
-# تثبيت الحزم الأساسية ونظام التشغيل اللازم لـ Laravel
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
 
-# تنظيف الكاش الخاص بالحزم لتخفيف حجم الصورة
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+COPY . .
+RUN npm run build
 
-# تثبيت الـ PHP Extensions المطلوبة للارافيل
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-# تحميل وتثبيت Composer (مدير حزم PHP)
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+FROM php:8.4-apache
 
-# تحديد مجلد العمل داخل السيرفر
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git unzip \
+    libpq-dev libzip-dev libonig-dev libxml2-dev \
+    libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+        pdo_pgsql mbstring exif pcntl bcmath gd zip opcache \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
 WORKDIR /var/www/html
-
-# نسخ ملفات المشروع بالكامل إلى الحاوية (Container)
 COPY . .
 
-# ضبط مسار الـ Document Root الخاص بـ Apache ليوجه للـ public folder في لارافيل
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
+RUN mkdir -p storage/framework/cache/data \
+    storage/framework/sessions storage/framework/views \
+    storage/logs bootstrap/cache \
+    && composer install --no-dev --no-interaction \
+        --prefer-dist --optimize-autoloader
 
-# إعطاء صلاحيات الكتابة لمجلدات التخزين والـ Cache
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+COPY --from=frontend /app/public/build ./public/build
 
-# تفعيل الـ Apache Mod Rewrite الخاص بالروابط (Routing)
-RUN a2enmod rewrite
+RUN a2enmod rewrite \
+    && printf '%s\n' \
+        '<VirtualHost *:80>' \
+        '    DocumentRoot /var/www/html/public' \
+        '    <Directory /var/www/html/public>' \
+        '        AllowOverride All' \
+        '        Require all granted' \
+        '    </Directory>' \
+        '</VirtualHost>' \
+        > /etc/apache2/sites-available/000-default.conf \
+    && chown -R www-data:www-data storage bootstrap/cache
 
-# منفذ التشغيل
-EXPOSE 80
+EXPOSE 10000
 
-# أمر التشغيل النهائي لـ Apache
-CMD php artisan config:cache && php artisan route:cache && apache2-foreground
+CMD ["sh", "-c", "set -eu; port=${PORT:-10000}; sed -i \"s/^Listen 80$/Listen ${port}/\" /etc/apache2/ports.conf; sed -i \"s/<VirtualHost \\*:80>/<VirtualHost *:${port}>/\" /etc/apache2/sites-available/000-default.conf; php artisan config:cache; exec apache2-foreground"]
