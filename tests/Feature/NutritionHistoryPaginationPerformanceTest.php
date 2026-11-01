@@ -94,8 +94,7 @@ class NutritionHistoryPaginationPerformanceTest extends TestCase
             ->assertViewHas('daysLoggedThisMonth', 1)
             ->assertViewHas('avgDailyCalories', 120)
             ->assertViewHas('avgDailyProtein', 7.0)
-            ->assertViewHas('paginatedDates', fn ($dates) =>
-                $dates->total() === 1
+            ->assertViewHas('paginatedDates', fn ($dates) => $dates->total() === 1
                 && $dates->first()->contains('id', $meal->id)
             );
     }

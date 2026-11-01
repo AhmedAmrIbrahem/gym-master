@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Rules\PasswordCharacters;
+use App\Services\GymReminders\WebWhatsAppSender;
+use App\Services\GymReminders\WhatsAppSender;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -11,7 +13,7 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->bind(\App\Services\GymReminders\WhatsAppSender::class, \App\Services\GymReminders\WebWhatsAppSender::class);
+        $this->app->bind(WhatsAppSender::class, WebWhatsAppSender::class);
     }
 
     public function boot(): void

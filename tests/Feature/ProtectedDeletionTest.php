@@ -6,9 +6,9 @@ use App\Models\DayExercise;
 use App\Models\Exercise;
 use App\Models\User;
 use App\Models\WorkoutDay;
+use App\Models\WorkoutLog;
 use App\Models\WorkoutProgram;
 use App\Models\WorkoutSession;
-use App\Models\WorkoutLog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

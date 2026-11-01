@@ -10,12 +10,12 @@ use App\Http\Requests\ProgramNameRequest;
 use App\Http\Requests\UpdateDayExerciseRequest;
 use App\Models\DayExercise;
 use App\Models\Exercise;
+use App\Models\WorkoutDay;
+use App\Models\WorkoutProgram;
+use App\Models\WorkoutSession;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Models\WorkoutDay;
-use App\Models\WorkoutSession;
-use App\Models\WorkoutProgram;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class ProgramController extends Controller
 {

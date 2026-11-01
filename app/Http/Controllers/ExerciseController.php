@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ExerciseFormRequest;
-use App\Models\Exercise;
 use App\Models\DayExercise;
+use App\Models\Exercise;
 use App\Models\WorkoutLog;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;

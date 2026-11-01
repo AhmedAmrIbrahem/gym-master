@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Exercise;
 use App\Models\User;
 
 class DeletionProtection
@@ -29,7 +30,7 @@ class DeletionProtection
             return 'لا يمكن حذف الحساب لأنه يحتوي على قياسات جسم مسجلة.';
         }
 
-        if (\App\Models\Exercise::where('user_id', $user->id)->exists()) {
+        if (Exercise::where('user_id', $user->id)->exists()) {
             return 'لا يمكن حذف الحساب لأنه مرتبط بتمارين خاصة بالمستخدم.';
         }
 

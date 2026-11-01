@@ -102,6 +102,7 @@ class FoodCatalogPerformanceTest extends TestCase
             'daily_meal_id' => $meal->id, 'food_id' => $food->id, 'grams' => 100,
         ]);
     }
+
     public function test_opening_nutrition_twice_reuses_the_same_daily_meals(): void
     {
         $owner = User::factory()->create();
@@ -129,5 +130,4 @@ class FoodCatalogPerformanceTest extends TestCase
                 ->where('meal_type', 'إفطار')->firstOrFail()->id
         );
     }
-
 }

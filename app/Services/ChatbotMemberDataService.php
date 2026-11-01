@@ -34,6 +34,7 @@ class ChatbotMemberDataService
             if (preg_match('/(?:رقم|موبايل|تليفون|هاتف)/u', $q)) {
                 return $user->phone ? 'رقم الهاتف المسجل في حسابك: '.$user->phone : 'لم يتم تسجيل رقم هاتف في حسابك.';
             }
+
             return 'اسمك المسجل في حساب Gym Master: '.$user->name;
         }
 
@@ -48,7 +49,7 @@ class ChatbotMemberDataService
                 ->first();
 
             return $measurement !== null
-                ? 'آخر طول مسجل لك: '.$measurement->height.' سم (بتاريخ '.$measurement->date->format('Y-m-d').').' 
+                ? 'آخر طول مسجل لك: '.$measurement->height.' سم (بتاريخ '.$measurement->date->format('Y-m-d').').'
                 : 'لا يوجد طول مسجل في قياسات حسابك حتى الآن. يمكنك تسجيله من صفحة وزن الجسم والقياسات.';
         }
 
@@ -64,6 +65,7 @@ class ChatbotMemberDataService
             $previous = (float) $weights[1]->weight;
             $delta = round($latest - $previous, 1);
             $movement = $delta > 0 ? 'زاد' : ($delta < 0 ? 'قل' : 'ثابت');
+
             return 'آخر وزن: '.$this->number($latest).' كجم ('.$weights[0]->date->format('Y-m-d').')، '
                 .'والوزن اللي قبله: '.$this->number($previous).' كجم ('.$weights[1]->date->format('Y-m-d').'). '
                 .'الفرق: '.($delta === 0.0 ? 'مفيش تغيير مسجل' : 'وزنك '.$movement.' '.$this->number(abs($delta)).' كجم')
@@ -182,6 +184,7 @@ class ChatbotMemberDataService
                 $lines[] = '### '.($session->workoutDay->name ?? 'جلسة تمرين');
                 if ($session->logs->isEmpty()) {
                     $lines[] = '• مفيش مجموعات محفوظة للجلسة دي.';
+
                     continue;
                 }
                 foreach ($session->logs->groupBy('exercise_id') as $logs) {
@@ -194,6 +197,7 @@ class ChatbotMemberDataService
                     }
                 }
             }
+
             return implode("\n", $lines);
         }
         $last = (clone $sessions)->with(['workoutDay', 'logs.exercise'])
