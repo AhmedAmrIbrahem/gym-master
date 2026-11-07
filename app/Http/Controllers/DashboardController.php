@@ -7,6 +7,8 @@ use App\Models\DailyMeal; // استدعاء الموديل الصحيح
 use App\Models\WorkoutProgram;
 use App\Models\WorkoutSession;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -18,13 +20,13 @@ class DashboardController extends Controller
         Carbon::setLocale('ar');
         $user = auth()->user();
         $today = now()->toDateString();
-        $creatineTakenToday = \Illuminate\Support\Facades\DB::table('daily_creatine_intakes')
+        $creatineTakenToday = DB::table('daily_creatine_intakes')
             ->where('user_id', $user->id)->where('date', $today)->exists();
 
         // Water is stored per user and calendar date; targets are explicitly chosen by the member.
-        $waterGoalMl = \Illuminate\Support\Facades\DB::table('water_tracking_settings')
+        $waterGoalMl = DB::table('water_tracking_settings')
             ->where('user_id', $user->id)->value('goal_ml');
-        $waterConsumedMl = (int) (\Illuminate\Support\Facades\DB::table('daily_water_intakes')
+        $waterConsumedMl = (int) (DB::table('daily_water_intakes')
             ->where('user_id', $user->id)->where('date', $today)->value('consumed_ml') ?? 0);
 
         // 1. بيانات تمرين اليوم والنظام النشط
@@ -98,6 +100,7 @@ class DashboardController extends Controller
         $weeklyTrainingDays = collect(range(6, 0))
             ->map(function ($offset) use ($trainedDates) {
                 $day = now()->subDays($offset);
+
                 return [
                     'date' => $day->toDateString(),
                     'label' => $day->locale('ar')->translatedFormat('D'),
@@ -115,7 +118,9 @@ class DashboardController extends Controller
             ['target_fats', 'الدهون', $todayFats, 'جم', 'bg-amber-500', 0],
         ] as [$field, $label, $actual, $unit, $color, $precision]) {
             $target = (float) ($user->{$field} ?? 0);
-            if ($target <= 0) continue;
+            if ($target <= 0) {
+                continue;
+            }
             $nutritionGoals[] = compact('label', 'actual', 'target', 'unit', 'color', 'precision') + [
                 'percentage' => min(100, max(0, round($actual / $target * 100))),
             ];
@@ -147,32 +152,35 @@ class DashboardController extends Controller
             'weeklyTrainingCount'
         ));
     }
-    public function setWaterGoal(\Illuminate\Http\Request $request)
+
+    public function setWaterGoal(Request $request)
     {
         $data = $request->validate(['goal_ml' => ['required', 'integer', 'min:500', 'max:6000']]);
         $userId = auth()->id();
-        \Illuminate\Support\Facades\DB::table('water_tracking_settings')->updateOrInsert(
+        DB::table('water_tracking_settings')->updateOrInsert(
             ['user_id' => $userId],
             ['goal_ml' => $data['goal_ml'], 'updated_at' => now()]
         );
+
         return redirect()->route('dashboard');
     }
 
-    public function addWater(\Illuminate\Http\Request $request)
+    public function addWater(Request $request)
     {
         $data = $request->validate(['amount_ml' => ['required', 'integer', 'in:250,500']]);
         $userId = auth()->id();
         $date = now()->toDateString();
-        \Illuminate\Support\Facades\DB::transaction(function () use ($userId, $date, $data) {
-            \Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->lockForUpdate()->first();
-            $query = \Illuminate\Support\Facades\DB::table('daily_water_intakes')->where('user_id', $userId)->where('date', $date);
+        DB::transaction(function () use ($userId, $date, $data) {
+            DB::table('users')->where('id', $userId)->lockForUpdate()->first();
+            $query = DB::table('daily_water_intakes')->where('user_id', $userId)->where('date', $date);
             $current = (int) ($query->value('consumed_ml') ?? 0);
             $next = min(20000, $current + (int) $data['amount_ml']);
-            \Illuminate\Support\Facades\DB::table('daily_water_intakes')->updateOrInsert(
+            DB::table('daily_water_intakes')->updateOrInsert(
                 ['user_id' => $userId, 'date' => $date],
                 ['consumed_ml' => $next, 'updated_at' => now()]
             );
         });
+
         return redirect()->route('dashboard');
     }
 
@@ -180,18 +188,19 @@ class DashboardController extends Controller
     {
         $userId = auth()->id();
         $date = now()->toDateString();
-        \Illuminate\Support\Facades\DB::transaction(function () use ($userId, $date) {
-            \Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->lockForUpdate()->first();
-            $query = \Illuminate\Support\Facades\DB::table('daily_creatine_intakes')
+        DB::transaction(function () use ($userId, $date) {
+            DB::table('users')->where('id', $userId)->lockForUpdate()->first();
+            $query = DB::table('daily_creatine_intakes')
                 ->where('user_id', $userId)->where('date', $date);
             if ($query->exists()) {
                 $query->delete();
             } else {
-                \Illuminate\Support\Facades\DB::table('daily_creatine_intakes')->insert([
+                DB::table('daily_creatine_intakes')->insert([
                     'user_id' => $userId, 'date' => $date, 'created_at' => now(), 'updated_at' => now(),
                 ]);
             }
         });
+
         return redirect()->route('dashboard');
     }
 }

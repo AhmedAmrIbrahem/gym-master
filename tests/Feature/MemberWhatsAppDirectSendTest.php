@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\WelcomeUserMail;
 use App\Models\User;
 use App\Services\GymReminders\WhatsAppSender;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,7 +30,7 @@ class MemberWhatsAppDirectSendTest extends TestCase
             'name' => 'New Member', 'email' => 'new@example.com', 'phone' => '01012345678',
             'password' => 'SafePassword123!', 'password_confirmation' => 'SafePassword123!',
         ])->assertSessionHasNoErrors();
-        Mail::assertSent(\App\Mail\WelcomeUserMail::class, 1);
+        Mail::assertSent(WelcomeUserMail::class, 1);
         $member = User::where('email', 'new@example.com')->firstOrFail();
         $this->assertSame('sent', $member->whatsappCredential->status);
         $this->assertNotSame('SafePassword123!', $member->whatsappCredential->encrypted_password);
@@ -57,6 +58,7 @@ class MemberWhatsAppDirectSendTest extends TestCase
         $this->assertNull($member->whatsappCredential->fresh()->encrypted_password);
         $this->assertSame('reset_link', $member->whatsappCredential->fresh()->message_type);
     }
+
     public function test_email_is_attempted_even_if_whatsapp_sender_throws(): void
     {
         Mail::fake();
@@ -70,8 +72,7 @@ class MemberWhatsAppDirectSendTest extends TestCase
             'password' => 'SafePassword123!', 'password_confirmation' => 'SafePassword123!',
         ])->assertSessionHasNoErrors();
 
-        Mail::assertSent(\App\Mail\WelcomeUserMail::class, 1);
+        Mail::assertSent(WelcomeUserMail::class, 1);
         $this->assertDatabaseHas('users', ['email' => 'new@example.com']);
     }
-
 }

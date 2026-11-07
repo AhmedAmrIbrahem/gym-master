@@ -64,6 +64,7 @@ final class MemberWhatsAppCredentials
 
         if ($phone === null) {
             $record->update(['status' => 'failed']);
+
             return 'failed';
         }
 
@@ -84,6 +85,7 @@ final class MemberWhatsAppCredentials
         }
         $status = in_array($result, ['sent', 'failed', 'retry', 'unknown'], true) ? $result : 'unknown';
         $record->update(['status' => $status]);
+
         return $status;
     }
 }

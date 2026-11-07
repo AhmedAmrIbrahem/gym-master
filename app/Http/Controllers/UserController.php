@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Mail\WelcomeUserMail;
-use App\Services\MemberWhatsAppCredentials;
-use App\Services\Auth\LoginIdentity;
 use App\Models\User;
 use App\Models\WorkoutSession;
+use App\Services\Auth\LoginIdentity;
+use App\Services\MemberWhatsAppCredentials;
 use App\Support\DeletionProtection;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -80,6 +80,7 @@ class UserController extends Controller
             $canonical = LoginIdentity::phone((string) $value);
             if ($canonical === null) {
                 $fail('يرجى إدخال رقم هاتف صحيح مع رمز الدولة عند الحاجة.');
+
                 return;
             }
 
@@ -223,11 +224,13 @@ class UserController extends Controller
                 'login_url' => route('login'),
             ]);
     }
+
     public function resendWhatsApp(User $user, MemberWhatsAppCredentials $whatsapp)
     {
         abort_if($user->isSuperAdmin(), 403);
 
         $status = $whatsapp->send($user);
+
         return back()->with($status === 'sent' ? 'success' : 'error', match ($status) {
             'sent' => 'تم إرسال رسالة واتساب من الرقم المرتبط بالبروفايدر.',
             'failed' => 'فشل الإرسال. تأكد من رقم المشترك.',
@@ -235,5 +238,4 @@ class UserController extends Controller
             default => 'تعذر تأكيد الإرسال. تحقق من حالة البروفايدر قبل إعادة المحاولة.',
         });
     }
-
 }
