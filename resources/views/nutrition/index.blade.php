@@ -17,27 +17,20 @@
         // جلب نوع اليوم من الـ Request إن وجد، والافتراضي أنه يوم جيم
         $dayType = request('day_type', 'workout');
 
-        if ($dayType === 'rest') {
-            $targetCal = $user->rest_target_calories ?? 2000;
-            $targetPro = $user->rest_target_protein ?? 160;
-            $targetCarb = $user->rest_target_carbs ?? 180;
-            $targetFat = $user->rest_target_fats ?? 65;
-        } else {
-            $targetCal = $user->target_calories ?? 2500;
-            $targetPro = $user->target_protein ?? 160;
-            $targetCarb = $user->target_carbs ?? 250;
-            $targetFat = $user->target_fats ?? 60;
-        }
+        $prefix = $dayType === 'rest' ? 'rest_target_' : 'target_';
+        $targetCal = $user->{$prefix.'calories'};
+        $targetPro = $user->{$prefix.'protein'};
+        $targetCarb = $user->{$prefix.'carbs'};
+        $targetFat = $user->{$prefix.'fats'};
 
-        $calPercent = min(100, round(($totalCalories / max(1, $targetCal)) * 100));
-        $proPercent = min(100, round(($totalProtein / max(1, $targetPro)) * 100));
-        $carbPercent = min(100, round(($totalCarbs / max(1, $targetCarb)) * 100));
-        $fatPercent = min(100, round(($totalFats / max(1, $targetFat)) * 100));
-
-        $remCal = $targetCal - $totalCalories;
-        $remPro = $targetPro - $totalProtein;
-        $remCarb = $targetCarb - $totalCarbs;
-        $remFat = $targetFat - $totalFats;
+        $calPercent = $targetCal !== null && $targetCal > 0 ? min(100, round($totalCalories / $targetCal * 100)) : 0;
+        $proPercent = $targetPro !== null && $targetPro > 0 ? min(100, round($totalProtein / $targetPro * 100)) : 0;
+        $carbPercent = $targetCarb !== null && $targetCarb > 0 ? min(100, round($totalCarbs / $targetCarb * 100)) : 0;
+        $fatPercent = $targetFat !== null && $targetFat > 0 ? min(100, round($totalFats / $targetFat * 100)) : 0;
+        $remCal = $targetCal !== null ? $targetCal - $totalCalories : null;
+        $remPro = $targetPro !== null ? $targetPro - $totalProtein : null;
+        $remCarb = $targetCarb !== null ? $targetCarb - $totalCarbs : null;
+        $remFat = $targetFat !== null ? $targetFat - $totalFats : null;
     @endphp
 
 
@@ -69,6 +62,10 @@
         html[data-theme="light"] .gym-mobile-meal-stat{background:#f5f8fc;border-color:#dce5ef}
         html[data-theme="light"] .gym-mobile-meal-stat span{color:#526784}
       }
+      .gym-targets-unset { background:#32281d; border:1px solid #786044; color:#fde9c5; }
+      .gym-targets-unset a { color:#ffdc99; text-decoration:underline; text-underline-offset:3px; }
+      html[data-theme="light"] .gym-targets-unset { background:#fff8e9!important; border-color:#efcf8f!important; color:#835006!important; }
+      html[data-theme="light"] .gym-targets-unset a { color:#895000!important; }
       .gym-subtle-scroll{scrollbar-width:thin;scrollbar-color:#53657e transparent}
       .gym-subtle-scroll::-webkit-scrollbar{width:5px;height:5px}
       .gym-subtle-scroll::-webkit-scrollbar-thumb{background:#53657e;border-radius:10px}
@@ -104,6 +101,13 @@
                 </div>
             </div>
 
+            @if($targetCal === null || $targetPro === null || $targetCarb === null || $targetFat === null)
+                <div class="gym-targets-unset rounded-xl px-4 py-3 text-sm font-medium flex flex-wrap items-center justify-between gap-2 leading-7">
+                    <span>أهداف هذا اليوم لم تُحدد بعد. يمكنك تسجيل الوجبات الآن وتحديد الأهداف لاحقًا.</span>
+                    <a href="{{ route('profile.edit') }}" class="font-bold underline underline-offset-4">تحديد الأهداف</a>
+                </div>
+            @endif
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                 <!-- 1. شريط السعرات -->
@@ -111,10 +115,12 @@
                     <div class="flex justify-between items-center text-xs">
                         <span class="font-bold text-amber-400 flex items-center gap-1">🔥 السعرات الحرارية</span>
                         <span class="font-black text-white">
-                            {{ number_format($totalCalories) }} / {{ number_format($targetCal) }} كالوري
-                            <span class="text-[10px] text-gray-400 font-normal">
-                                ({{ $remCal >= 0 ? "متبقي $remCal" : "تجاوزت بـ " . abs($remCal) }})
-                            </span>
+                            {{ number_format($totalCalories) }} / {{ $targetCal !== null ? number_format($targetCal) : 'غير محدد' }} كالوري
+                            @if($remCal !== null)
+                                <span class="text-[10px] text-gray-400 font-normal">
+                                    ({{ $remCal >= 0 ? 'متبقي ' . number_format($remCal) : 'تجاوزت بـ ' . number_format(abs($remCal)) }})
+                                </span>
+                            @endif
                         </span>
                     </div>
                     <div class="w-full bg-gray-900 h-3 rounded-full overflow-hidden p-0.5 border border-gray-700">
@@ -127,10 +133,12 @@
                     <div class="flex justify-between items-center text-xs">
                         <span class="font-bold text-emerald-400 flex items-center gap-1">🥩 البروتين</span>
                         <span class="font-black text-white">
-                            {{ number_format($totalProtein, 1) }} / {{ number_format($targetPro, 1) }} جم
-                            <span class="text-[10px] text-gray-400 font-normal">
-                                ({{ $remPro >= 0 ? "متبقي " . number_format($remPro, 1) : "تجاوزت بـ " . number_format(abs($remPro), 1) }})
-                            </span>
+                            {{ number_format($totalProtein, 1) }} / {{ $targetPro !== null ? number_format($targetPro, 1) : 'غير محدد' }} جم
+                            @if($remPro !== null)
+                                <span class="text-[10px] text-gray-400 font-normal">
+                                    ({{ $remPro >= 0 ? 'متبقي ' . number_format($remPro, 1) : 'تجاوزت بـ ' . number_format(abs($remPro), 1) }})
+                                </span>
+                            @endif
                         </span>
                     </div>
                     <div class="w-full bg-gray-900 h-3 rounded-full overflow-hidden p-0.5 border border-gray-700">
@@ -143,10 +151,12 @@
                     <div class="flex justify-between items-center text-xs">
                         <span class="font-bold text-blue-400 flex items-center gap-1">🍞 الكربوهيدرات</span>
                         <span class="font-black text-white">
-                            {{ number_format($totalCarbs, 1) }} / {{ number_format($targetCarb, 1) }} جم
-                            <span class="text-[10px] text-gray-400 font-normal">
-                                ({{ $remCarb >= 0 ? "متبقي " . number_format($remCarb, 1) : "تجاوزت بـ " . number_format(abs($remCarb), 1) }})
-                            </span>
+                            {{ number_format($totalCarbs, 1) }} / {{ $targetCarb !== null ? number_format($targetCarb, 1) : 'غير محدد' }} جم
+                            @if($remCarb !== null)
+                                <span class="text-[10px] text-gray-400 font-normal">
+                                    ({{ $remCarb >= 0 ? 'متبقي ' . number_format($remCarb, 1) : 'تجاوزت بـ ' . number_format(abs($remCarb), 1) }})
+                                </span>
+                            @endif
                         </span>
                     </div>
                     <div class="w-full bg-gray-900 h-3 rounded-full overflow-hidden p-0.5 border border-gray-700">
@@ -159,10 +169,12 @@
                     <div class="flex justify-between items-center text-xs">
                         <span class="font-bold text-purple-400 flex items-center gap-1">🥑 الدهون الصحية</span>
                         <span class="font-black text-white">
-                            {{ number_format($totalFats, 1) }} / {{ number_format($targetFat, 1) }} جم
-                            <span class="text-[10px] text-gray-400 font-normal">
-                                ({{ $remFat >= 0 ? "متبقي " . number_format($remFat, 1) : "تجاوزت بـ " . number_format(abs($remFat), 1) }})
-                            </span>
+                            {{ number_format($totalFats, 1) }} / {{ $targetFat !== null ? number_format($targetFat, 1) : 'غير محدد' }} جم
+                            @if($remFat !== null)
+                                <span class="text-[10px] text-gray-400 font-normal">
+                                    ({{ $remFat >= 0 ? 'متبقي ' . number_format($remFat, 1) : 'تجاوزت بـ ' . number_format(abs($remFat), 1) }})
+                                </span>
+                            @endif
                         </span>
                     </div>
                     <div class="w-full bg-gray-900 h-3 rounded-full overflow-hidden p-0.5 border border-gray-700">

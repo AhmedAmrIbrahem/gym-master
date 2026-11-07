@@ -27,3 +27,6 @@ document.addEventListener('click', (event) => {
     try { localStorage.setItem('gym-theme', next); } catch (error) { /* Private mode */ }
     syncGymThemeButtons();
 });
+
+// Shared stopwatch and rest timer for regular members.
+import './workout-timer';

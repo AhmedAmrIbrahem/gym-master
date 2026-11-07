@@ -16,10 +16,23 @@ class StoreWorkoutExerciseRequest extends FormRequest
         return [
             'workout_day_id' => 'required|exists:workout_days,id',
             'exercise_id' => 'required|exists:exercises,id',
-            'sets' => 'required|array',
-            'sets.*.weight' => 'nullable|numeric|min:0|max:10000',
-            'sets.*.reps' => 'nullable|integer|min:1|max:10000',
+            'sets' => 'required|array|min:1',
+            'sets.*.weight' => 'nullable|required_with:sets.*.reps|numeric|between:0,999.99|decimal:0,2',
+            'sets.*.reps' => 'nullable|required_with:sets.*.weight|integer|between:1,1000',
             'notes' => 'nullable|string|max:2000',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'sets.*.weight.required_with' => 'أدخل الوزن مع عدد العدات، أو اترك المجموعة فارغة.',
+            'sets.*.weight.numeric' => 'الوزن لازم يكون رقمًا.',
+            'sets.*.weight.between' => 'الوزن لازم يكون من 0 إلى 999.99 كجم.',
+            'sets.*.weight.decimal' => 'الوزن يقبل رقمين فقط بعد العلامة العشرية.',
+            'sets.*.reps.required_with' => 'أدخل عدد العدات مع الوزن، أو اترك المجموعة فارغة.',
+            'sets.*.reps.integer' => 'عدد العدات لازم يكون رقمًا صحيحًا.',
+            'sets.*.reps.between' => 'عدد العدات لازم يكون من 1 إلى 1000.',
         ];
     }
 }

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Mail\WelcomeUserMail;
 use App\Models\User;
 use App\Models\WorkoutSession;
+use App\Services\Auth\LoginIdentity;
+use App\Services\MemberWhatsAppCredentials;
 use App\Support\DeletionProtection;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -64,20 +66,41 @@ class UserController extends Controller
     {
         $users = User::where('role', 'user')
             ->withCount(['workoutSessions', 'dailyMeals'])
-            ->with(['latestMeasurement'])
+            ->with(['latestMeasurement', 'whatsappCredential'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
         return view('admin.users.index', compact('users'));
     }
 
+    /** @return array<int, mixed> */
+    private function phoneRules(?int $exceptId = null): array
+    {
+        return ['required', 'string', 'max:32', function (string $attribute, mixed $value, \Closure $fail) use ($exceptId): void {
+            $canonical = LoginIdentity::phone((string) $value);
+            if ($canonical === null) {
+                $fail('يرجى إدخال رقم هاتف صحيح مع رمز الدولة عند الحاجة.');
+
+                return;
+            }
+
+            // Compare canonical forms, not only exact database strings, to avoid
+            // creating two accounts that can never log in by phone unambiguously.
+            $phones = User::query()->when($exceptId !== null, fn ($q) => $q->whereKeyNot($exceptId))
+                ->whereNotNull('phone')->pluck('phone');
+            if ($phones->contains(fn ($phone) => LoginIdentity::phone((string) $phone) === $canonical)) {
+                $fail('رقم الهاتف مسجل بالفعل لحساب آخر.');
+            }
+        }];
+    }
+
     // The super admin sets the member's initial password directly.
-    public function store(Request $request)
+    public function store(Request $request, MemberWhatsAppCredentials $whatsapp)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'phone' => 'required|string|unique:users,phone',
+            'phone' => $this->phoneRules(),
             'password' => ['required', 'string', Password::defaults(), 'confirmed'],
         ]);
 
@@ -88,7 +111,25 @@ class UserController extends Controller
         $validated['is_active'] = true;
         $user = User::create($validated);
 
-        // Keep credentials for one redirect only so the admin can copy them.
+        // Email and WhatsApp are independent: a provider failure must never suppress email.
+        $mailSent = false;
+        try {
+            Mail::to($user->email)->send(new WelcomeUserMail($user, $plainPassword));
+            $mailSent = true;
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
+
+        $whatsappStatus = 'unknown';
+        try {
+            // Save a time-limited encrypted copy for resending and send automatically.
+            $whatsapp->saveInitialPassword($user, $plainPassword);
+            $whatsappStatus = $whatsapp->send($user);
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
+
+        // Only include the password in this one-time redirect (never in logs).
         $redirect = back()->with('new_member_credentials', [
             'id' => $user->id,
             'name' => $user->name,
@@ -98,15 +139,16 @@ class UserController extends Controller
             'login_url' => route('login'),
         ]);
 
-        try {
-            Mail::to($user->email)->send(new WelcomeUserMail($user, $plainPassword));
+        $mailMessage = $mailSent ? 'تم إرسال البريد الإلكتروني' : 'تعذر إرسال البريد الإلكتروني';
+        $whatsappMessage = match ($whatsappStatus) {
+            'sent' => 'تم إرسال واتساب',
+            'failed' => 'فشل إرسال واتساب',
+            'retry' => 'البروفايدر غير متصل، ولم يتم إرسال واتساب',
+            default => 'حالة إرسال واتساب غير مؤكدة',
+        };
 
-            return $redirect->with('success', 'تم إنشاء المشترك وإرسال بيانات الدخول إلى بريده الإلكتروني.');
-        } catch (\Throwable $exception) {
-            report($exception);
-
-            return $redirect->with('error', 'تم إنشاء المشترك، لكن تعذر إرسال رسالة البريد. يمكنك نسخ بيانات الدخول من البطاقة الظاهرة.');
-        }
+        return $redirect->with($mailSent && $whatsappStatus === 'sent' ? 'success' : 'error',
+            "تم إنشاء المشترك. {$mailMessage}. {$whatsappMessage}.");
     }
 
     public function update(Request $request, User $user)
@@ -115,7 +157,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,'.$user->id,
-            'phone' => 'required|string|unique:users,phone,'.$user->id,
+            'phone' => $this->phoneRules($user->id),
             'is_active' => 'required|boolean',
         ]);
 
@@ -155,7 +197,7 @@ class UserController extends Controller
         return redirect()->back()->with('success', 'تم حذف المشترك بنجاح!');
     }
 
-    public function resetPassword(Request $request, User $user)
+    public function resetPassword(Request $request, User $user, MemberWhatsAppCredentials $whatsapp)
     {
         abort_if($user->isSuperAdmin(), 403);
 
@@ -168,8 +210,11 @@ class UserController extends Controller
             'remember_token' => Str::random(60),
         ])->save();
 
+        $whatsapp->saveInitialPassword($user, $validated['password']);
+        $whatsappStatus = $whatsapp->send($user);
+
         return back()
-            ->with('success', 'تم تغيير كلمة مرور المشترك بنجاح.')
+            ->with('success', $whatsappStatus === 'sent' ? 'تم تغيير كلمة المرور وإرسالها عبر واتساب.' : 'تم تغيير كلمة المرور، لكن إرسال واتساب لم يتأكد.')
             ->with('new_member_credentials', [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -178,5 +223,19 @@ class UserController extends Controller
                 'password' => $validated['password'],
                 'login_url' => route('login'),
             ]);
+    }
+
+    public function resendWhatsApp(User $user, MemberWhatsAppCredentials $whatsapp)
+    {
+        abort_if($user->isSuperAdmin(), 403);
+
+        $status = $whatsapp->send($user);
+
+        return back()->with($status === 'sent' ? 'success' : 'error', match ($status) {
+            'sent' => 'تم إرسال رسالة واتساب من الرقم المرتبط بالبروفايدر.',
+            'failed' => 'فشل الإرسال. تأكد من رقم المشترك.',
+            'retry' => 'البروفايدر غير متصل. يمكنك المحاولة بعد إعادة الاتصال.',
+            default => 'تعذر تأكيد الإرسال. تحقق من حالة البروفايدر قبل إعادة المحاولة.',
+        });
     }
 }

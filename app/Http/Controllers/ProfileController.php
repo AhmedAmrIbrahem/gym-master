@@ -39,10 +39,10 @@ class ProfileController extends Controller
 
         if (! $user->isSuperAdmin()) {
             $rules += [
-                'target_calories' => ['required', 'integer', 'min:500', 'max:10000'],
-                'target_protein' => ['required', 'numeric', 'min:0', 'max:1000'],
-                'target_carbs' => ['required', 'numeric', 'min:0', 'max:1000'],
-                'target_fats' => ['required', 'numeric', 'min:0', 'max:1000'],
+                'target_calories' => ['nullable', 'integer', 'min:500', 'max:10000'],
+                'target_protein' => ['nullable', 'numeric', 'min:0', 'max:1000'],
+                'target_carbs' => ['nullable', 'numeric', 'min:0', 'max:1000'],
+                'target_fats' => ['nullable', 'numeric', 'min:0', 'max:1000'],
                 'rest_target_calories' => ['nullable', 'integer', 'min:500', 'max:10000'],
                 'rest_target_protein' => ['nullable', 'numeric', 'min:0', 'max:1000'],
                 'rest_target_carbs' => ['nullable', 'numeric', 'min:0', 'max:1000'],

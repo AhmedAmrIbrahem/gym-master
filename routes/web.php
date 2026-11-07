@@ -28,6 +28,12 @@ Route::middleware(['auth', 'active_account'])->group(function () {
 
         // لوحة التحكم الرئيسية والتمارين
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::post('/dashboard/creatine/toggle', [DashboardController::class, 'toggleCreatine'])
+            ->middleware('throttle:30,1')->name('dashboard.creatine.toggle');
+        Route::post('/dashboard/water/goal', [DashboardController::class, 'setWaterGoal'])
+            ->middleware('throttle:30,1')->name('dashboard.water.goal');
+        Route::post('/dashboard/water/add', [DashboardController::class, 'addWater'])
+            ->middleware('throttle:60,1')->name('dashboard.water.add');
         Route::get('/workout/start/{day}', [WorkoutController::class, 'start'])->name('workout.start');
         Route::post('/workout/store', [WorkoutController::class, 'store'])->name('workout.store');
         Route::post('/workout/store-single', [WorkoutController::class, 'storeSingleExercise'])->name('workout.store-single');
@@ -103,6 +109,8 @@ Route::middleware(['auth', 'active_account', 'super_admin'])->prefix('admin')->g
     Route::put('/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
     Route::patch('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('admin.users.toggle-status');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
+    Route::post('/users/{user}/resend-whatsapp', [UserController::class, 'resendWhatsApp'])
+        ->middleware('throttle:6,1')->name('admin.users.resend-whatsapp');
     Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('admin.users.reset-password');
 });
 

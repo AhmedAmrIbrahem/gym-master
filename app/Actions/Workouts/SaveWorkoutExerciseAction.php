@@ -37,7 +37,7 @@ class SaveWorkoutExerciseAction
 
             foreach ($sets as $index => $setData) {
                 // Preserve the existing UI behavior: skip incomplete/empty sets.
-                if (! empty($setData['weight']) && ! empty($setData['reps'])) {
+                if (isset($setData['weight'], $setData['reps']) && $setData['weight'] !== '' && $setData['reps'] !== '') {
                     WorkoutLog::create([
                         'workout_session_id' => $session->id,
                         'exercise_id' => $exerciseId,

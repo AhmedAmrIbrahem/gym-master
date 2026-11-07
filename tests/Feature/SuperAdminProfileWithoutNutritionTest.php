@@ -42,7 +42,7 @@ class SuperAdminProfileWithoutNutritionTest extends TestCase
         $this->assertEquals(155, $admin->target_protein);
     }
 
-    public function test_member_still_sees_nutrition_goals_and_requires_them(): void
+    public function test_member_still_sees_nutrition_goals_and_can_save_profile_without_them(): void
     {
         $member = User::factory()->create(['role' => 'user', 'is_active' => true]);
 
@@ -57,8 +57,9 @@ class SuperAdminProfileWithoutNutritionTest extends TestCase
         $this->actingAs($member)->patch(route('profile.update'), [
             'name' => 'Member',
             'email' => $member->email,
-        ])->assertSessionHasErrors([
-            'target_calories', 'target_protein', 'target_carbs', 'target_fats',
-        ]);
+        ])->assertRedirect(route('profile.edit'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('Member', $member->fresh()->name);
     }
 }

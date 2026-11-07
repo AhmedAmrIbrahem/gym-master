@@ -104,22 +104,22 @@
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-300 mb-1">🔥 سعرات الجيم</label>
-                                <input type="number" name="target_calories" value="{{ old('target_calories', $user->target_calories ?? 2500) }}" class="w-full bg-gray-800 border-gray-700 text-amber-400 font-bold rounded-xl text-xs p-2.5">
+                                <input type="number" name="target_calories" value="{{ old('target_calories', $user->target_calories) }}" class="w-full bg-gray-800 border-gray-700 text-amber-400 font-bold rounded-xl text-xs p-2.5">
                                 <x-input-error class="mt-1 text-xs text-red-400" :messages="$errors->get('target_calories')" />
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-300 mb-1">🥩 بروتين (جم)</label>
-                                <input type="number" step="0.1" name="target_protein" value="{{ old('target_protein', $user->target_protein ?? 160) }}" class="w-full bg-gray-800 border-gray-700 text-emerald-400 font-bold rounded-xl text-xs p-2.5">
+                                <input type="number" step="0.1" name="target_protein" value="{{ old('target_protein', $user->target_protein) }}" class="w-full bg-gray-800 border-gray-700 text-emerald-400 font-bold rounded-xl text-xs p-2.5">
                                 <x-input-error class="mt-1 text-xs text-red-400" :messages="$errors->get('target_protein')" />
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-300 mb-1">🍞 كارب (جم)</label>
-                                <input type="number" step="0.1" name="target_carbs" value="{{ old('target_carbs', $user->target_carbs ?? 250) }}" class="w-full bg-gray-800 border-gray-700 text-blue-400 font-bold rounded-xl text-xs p-2.5">
+                                <input type="number" step="0.1" name="target_carbs" value="{{ old('target_carbs', $user->target_carbs) }}" class="w-full bg-gray-800 border-gray-700 text-blue-400 font-bold rounded-xl text-xs p-2.5">
                                 <x-input-error class="mt-1 text-xs text-red-400" :messages="$errors->get('target_carbs')" />
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-300 mb-1">🥑 دهون (جم)</label>
-                                <input type="number" step="0.1" name="target_fats" value="{{ old('target_fats', $user->target_fats ?? 60) }}" class="w-full bg-gray-800 border-gray-700 text-purple-400 font-bold rounded-xl text-xs p-2.5">
+                                <input type="number" step="0.1" name="target_fats" value="{{ old('target_fats', $user->target_fats) }}" class="w-full bg-gray-800 border-gray-700 text-purple-400 font-bold rounded-xl text-xs p-2.5">
                                 <x-input-error class="mt-1 text-xs text-red-400" :messages="$errors->get('target_fats')" />
                             </div>
                         </div>
@@ -131,22 +131,22 @@
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-300 mb-1">🔥 سعرات الراحة</label>
-                                <input type="number" name="rest_target_calories" value="{{ old('rest_target_calories', $user->rest_target_calories ?? 2000) }}" class="w-full bg-gray-800 border-gray-700 text-amber-400 font-bold rounded-xl text-xs p-2.5">
+                                <input type="number" name="rest_target_calories" value="{{ old('rest_target_calories', $user->rest_target_calories) }}" class="w-full bg-gray-800 border-gray-700 text-amber-400 font-bold rounded-xl text-xs p-2.5">
                                 <x-input-error class="mt-1 text-xs text-red-400" :messages="$errors->get('rest_target_calories')" />
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-300 mb-1">🥩 بروتين (جم)</label>
-                                <input type="number" step="0.1" name="rest_target_protein" value="{{ old('rest_target_protein', $user->rest_target_protein ?? 160) }}" class="w-full bg-gray-800 border-gray-700 text-emerald-400 font-bold rounded-xl text-xs p-2.5">
+                                <input type="number" step="0.1" name="rest_target_protein" value="{{ old('rest_target_protein', $user->rest_target_protein) }}" class="w-full bg-gray-800 border-gray-700 text-emerald-400 font-bold rounded-xl text-xs p-2.5">
                                 <x-input-error class="mt-1 text-xs text-red-400" :messages="$errors->get('rest_target_protein')" />
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-300 mb-1">🍞 كارب (جم)</label>
-                                <input type="number" step="0.1" name="rest_target_carbs" value="{{ old('rest_target_carbs', $user->rest_target_carbs ?? 180) }}" class="w-full bg-gray-800 border-gray-700 text-blue-400 font-bold rounded-xl text-xs p-2.5">
+                                <input type="number" step="0.1" name="rest_target_carbs" value="{{ old('rest_target_carbs', $user->rest_target_carbs) }}" class="w-full bg-gray-800 border-gray-700 text-blue-400 font-bold rounded-xl text-xs p-2.5">
                                 <x-input-error class="mt-1 text-xs text-red-400" :messages="$errors->get('rest_target_carbs')" />
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-300 mb-1">🥑 دهون (جم)</label>
-                                <input type="number" step="0.1" name="rest_target_fats" value="{{ old('rest_target_fats', $user->rest_target_fats ?? 65) }}" class="w-full bg-gray-800 border-gray-700 text-purple-400 font-bold rounded-xl text-xs p-2.5">
+                                <input type="number" step="0.1" name="rest_target_fats" value="{{ old('rest_target_fats', $user->rest_target_fats) }}" class="w-full bg-gray-800 border-gray-700 text-purple-400 font-bold rounded-xl text-xs p-2.5">
                                 <x-input-error class="mt-1 text-xs text-red-400" :messages="$errors->get('rest_target_fats')" />
                             </div>
                         </div>
