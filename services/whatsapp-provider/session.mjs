@@ -105,6 +105,49 @@ export class WhatsAppSession {
     if (!this.isReady()) throw new Error('not_ready');
     return this.client.getNumberId(phone);
   }
+  // Observe a server ACK for an outgoing message before sending it.
+  // message_create alone is local and is not proof of transmission.
+  observeOutgoing(chatId, body) {
+    if (!this.isReady()) throw new Error('not_ready');
+    const client = this.client;
+    const created = new Set();
+    const acknowledged = new Set();
+    let resolveConfirmed;
+    let confirmed = false;
+    const confirmation = new Promise(resolve => { resolveConfirmed = resolve; });
+    const idOf = msg => typeof msg?.id?._serialized === 'string' ? msg.id._serialized
+      : typeof msg?.id?.id === 'string' ? msg.id.id : null;
+    const matching = msg => msg?.fromMe === true && msg?.to === chatId && msg?.body === body;
+    const accept = () => { if (!confirmed) { confirmed = true; resolveConfirmed(true); } };
+    const onCreate = msg => {
+      if (!matching(msg)) return;
+      const id = idOf(msg);
+      if (!id) return;
+      created.add(id);
+      if (Number(msg.ack) >= 1 || acknowledged.has(id)) accept();
+    };
+    const onAck = (msg, ack) => {
+      if (Number(ack) < 1) return;
+      const id = idOf(msg);
+      if (!id) return;
+      if (matching(msg) || created.has(id)) accept();
+      else acknowledged.add(id); // Some releases emit ACK before message_create.
+    };
+    client.on('message_create', onCreate);
+    client.on('message_ack', onAck);
+    return {
+      wait: (timeoutMs = 8000) => new Promise(resolve => {
+        if (confirmed) { resolve(true); return; }
+        const timer = setTimeout(() => resolve(false), timeoutMs);
+        confirmation.then(() => { clearTimeout(timer); resolve(true); });
+      }),
+      confirmed: () => confirmed,
+      close: () => {
+        client.removeListener('message_create', onCreate);
+        client.removeListener('message_ack', onAck);
+      },
+    };
+  }
   async sendMessage(...args) {
     if (!this.isReady()) throw new Error('not_ready');
     return this.client.sendMessage(...args);

@@ -103,8 +103,17 @@ export class MessageService {
         if (!await this.ledger.reserve(key, fingerprint)) return response(409, 'unknown');
         // From here onwards any exception is uncertain, and this key is NEVER auto-replayed.
         stage = 'whatsapp_send';
-        const message = await this.limited(() => this.client.sendMessage(number._serialized, text, { sendSeen: false, waitUntilMsgSent: true }));
-        if (!message?.id) { this.diagnostic(stage, 'send_unconfirmed'); return response(409, 'unknown'); }
+        // whatsapp-web.js 1.34.7 can resolve waitUntilMsgSent without a Message.
+        // Listen BEFORE sending; accept an observed server ACK, not a local message_create.
+        const observer = typeof this.client.observeOutgoing === 'function'
+          ? this.client.observeOutgoing(number._serialized, text) : null;
+        try {
+          const message = await this.limited(() => this.client.sendMessage(number._serialized, text, { sendSeen: false, waitUntilMsgSent: true }));
+          if (!message?.id && !observer?.confirmed() && !await observer?.wait()) {
+            this.diagnostic(stage, 'send_unconfirmed');
+            return response(409, 'unknown');
+          }
+        } finally { observer?.close(); }
         stage = 'ledger_write';
         await this.ledger.markSent(key, fingerprint);
         return response(200, 'sent');

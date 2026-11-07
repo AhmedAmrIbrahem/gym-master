@@ -43,6 +43,11 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_active' => 'boolean',
     ];
 
+    public function whatsappCredential(): HasOne
+    {
+        return $this->hasOne(MemberWhatsappCredential::class);
+    }
+
     // التحقق هل المستخدم Super Admin
     public function isSuperAdmin(): bool
     {

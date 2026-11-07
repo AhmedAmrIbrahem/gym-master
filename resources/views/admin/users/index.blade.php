@@ -152,10 +152,13 @@
                 <strong class="text-sm text-emerald-300">بيانات الدخول الجديدة — متاحة لمدة 30 ثانية</strong>
                 <button type="button" id="dismiss-member-credentials" class="text-gray-300 hover:text-white" aria-label="إغلاق">✕</button>
             </div>
-            <p class="text-xs text-gray-300">{{ $newMember['name'] }} — اضغط إرسال واتساب لتجهيز رسالة الدخول بكلمة المرور الجديدة.</p>
+            <p class="text-xs text-gray-300">{{ $newMember['name'] }} — بيانات الدخول يتم إرسالها تلقائيًا على الواتساب. ويمكنك إعادة الإرسال من الزر.</p>
             <p class="text-xs">كلمة المرور: <span class="text-emerald-300 font-mono select-all" dir="ltr">{{ $newMember['password'] }}</span></p>
             <div class="flex items-center gap-2">
-                <a id="send-member-credentials-whatsapp" href="#" target="_blank" rel="noopener noreferrer" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded-xl text-xs font-bold">إرسال واتساب</a>
+                <form method="POST" action="{{ route('admin.users.resend-whatsapp', $newMember['id']) }}" onsubmit="return confirm('هل تريد إعادة إرسال بيانات الدخول عبر واتساب؟')">
+                    @csrf
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded-xl text-xs font-bold">إعادة إرسال واتساب</button>
+                </form>
                 <button type="button" id="copy-member-credentials" class="bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded-xl text-xs font-bold">نسخ كلمة المرور</button>
                 <span id="member-credentials-countdown" class="text-xs text-gray-400">30 ثانية</span>
             </div>
@@ -166,28 +169,10 @@
                 const dismiss = document.getElementById('dismiss-member-credentials');
                 const copy = document.getElementById('copy-member-credentials');
                 const countdown = document.getElementById('member-credentials-countdown');
-                const sendWhatsapp = document.getElementById('send-member-credentials-whatsapp');
                 const credentials = @js($newMember);
-                const message = `مرحباً ${credentials.name}\nبيانات دخول Gym Master\n\nالبريد الإلكتروني: ${credentials.email}\nكلمة المرور: ${credentials.password}\n\nرابط تسجيل الدخول:\n${credentials.login_url}`;
-                // The password is only available immediately after creation or an admin reset.
-                // Match the member by ID so pagination and duplicate phone formatting cannot
-                // cause a password to be sent to the wrong member.
-                const whatsappLinks = Array.from(document.querySelectorAll('a[data-member-id]'))
-                    .filter(link => String(link.dataset.memberId) === String(credentials.id));
-                let digits = String(credentials.phone || '').replace(/\D/g, '');
-                if (digits.startsWith('01')) digits = `2${digits}`;
-                else if (digits.startsWith('00')) digits = digits.slice(2);
-                const credentialsUrl = `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
-                if (sendWhatsapp) sendWhatsapp.href = credentialsUrl;
-                const originalWhatsappUrls = whatsappLinks.map(link => link.href);
-                whatsappLinks.forEach(link => { link.href = credentialsUrl; });
                 let remaining = 30;
                 const close = () => {
                     card?.remove();
-                    if (sendWhatsapp) sendWhatsapp.removeAttribute('href');
-                    whatsappLinks.forEach((link, index) => {
-                        if (originalWhatsappUrls[index]) link.href = originalWhatsappUrls[index];
-                    });
                     clearInterval(interval);
                 };
                 dismiss?.addEventListener('click', close);
@@ -351,17 +336,12 @@
                             </td>
                             <td class="p-3 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    @php
-                                        $formattedPhone = preg_replace('/[^0-9]/', '', $u->phone);
-                                        if(str_starts_with($formattedPhone, '01')) {
-                                            $formattedPhone = '2' . $formattedPhone;
-                                        }
-                                        $waMessage = rawurlencode("مرحباً {$u->name} 👋\nتذكير ببيانات حسابك في Gym Master:\n\nالبريد الإلكتروني: {$u->email}\nرقم الهاتف: {$u->phone}\n\nرابط تسجيل الدخول:\n" . route('login'));
-                                    @endphp
-
-                                    <a href="https://wa.me/{{ $formattedPhone }}?text={{ $waMessage }}" data-member-id="{{ $u->id }}" data-member-email="{{ $u->email }}" data-member-phone="{{ $formattedPhone }}" target="_blank" rel="noopener noreferrer" title="إرسال تذكير بالحساب عبر الواتساب" class="text-emerald-400 hover:text-emerald-300 bg-emerald-600/10 p-2 rounded-lg font-bold flex items-center gap-1">
-                                        💬 واتساب
-                                    </a>
+                                    <form method="POST" action="{{ route('admin.users.resend-whatsapp', $u->id) }}" onsubmit="return confirm('إعادة إرسال رسالة واتساب لهذا المشترك؟')">
+                                        @csrf
+                                        <button type="submit" title="إعادة إرسال بيانات الحساب عبر البروفايدر" class="text-emerald-400 hover:text-emerald-300 bg-emerald-600/10 p-2 rounded-lg font-bold flex items-center gap-1">💬 إعادة إرسال
+                                        </button>
+                                        <span class="block text-[10px] text-gray-400">{{ match($u->whatsappCredential?->status) { 'sent' => 'تم الإرسال', 'failed' => 'فشل', 'retry' => 'غير متصل', 'unknown' => 'غير مؤكد', 'sending' => 'جارٍ الإرسال', default => 'لم يُرسل' } }}</span>
+                                    </form>
 
                                     <button @click="currentUser = {{ json_encode($u) }}; editModalOpen = true" class="text-blue-400 hover:text-blue-300 bg-blue-600/10 p-2 rounded-lg font-bold">
                                         ✏️ تعديل
@@ -421,15 +401,12 @@
                             <div class="gym-member-stat"><span class="gym-member-stat-label">آخر وزن</span><span class="gym-member-stat-value is-weight">{{ $u->latestMeasurement->weight ?? '--' }} كجم</span></div>
                         </div>
 
-                        @php
-                            $mobilePhone = preg_replace('/[^0-9]/', '', $u->phone);
-                            if (str_starts_with($mobilePhone, '01')) {
-                                $mobilePhone = '2' . $mobilePhone;
-                            }
-                            $mobileWaMessage = rawurlencode("مرحباً {$u->name} 👋\nتذكير ببيانات حسابك في Gym Master:\n\nالبريد الإلكتروني: {$u->email}\nرقم الهاتف: {$u->phone}\n\nرابط تسجيل الدخول:\n" . route('login'));
-                        @endphp
                         <div class="gym-member-actions">
-                            <a href="https://wa.me/{{ $mobilePhone }}?text={{ $mobileWaMessage }}" data-member-id="{{ $u->id }}" data-member-email="{{ $u->email }}" data-member-phone="{{ $mobilePhone }}" target="_blank" rel="noopener noreferrer" class="gym-member-action whatsapp">💬 واتساب</a>
+                            <form method="POST" action="{{ route('admin.users.resend-whatsapp', $u->id) }}" onsubmit="return confirm('إعادة إرسال رسالة واتساب لهذا المشترك؟')" class="min-w-0">
+                                @csrf
+                                <button type="submit" class="gym-member-action whatsapp w-full">💬 إعادة إرسال واتساب</button>
+                                <span class="block text-center text-[10px] text-gray-400">{{ match($u->whatsappCredential?->status) { 'sent' => 'تم الإرسال', 'failed' => 'فشل', 'retry' => 'غير متصل', 'unknown' => 'غير مؤكد', 'sending' => 'جارٍ الإرسال', default => 'لم يُرسل' } }}</span>
+                            </form>
                             <button type="button" @click="currentUser = {{ json_encode($u) }}; editModalOpen = true" class="gym-member-action edit">✏️ تعديل الحساب</button>
                             <button type="button" @click="passwordUser = { id: {{ $u->id }}, name: @js($u->name) }; passwordModalOpen = true" class="gym-member-action password">🔐 كلمة المرور</button>
                             <form action="{{ route('admin.users.destroy', $u->id) }}" method="POST" onsubmit="return confirm('هل أنت متأكد من حذف هذا المشترك؟')" class="min-w-0">

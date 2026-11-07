@@ -37,6 +37,7 @@
             html[data-theme="light"] body { background-color: #f4f7fb !important; }
         }
         body { font-family: 'Cairo', sans-serif; }
+        [data-timer-overlay][hidden], [data-timer-mini][hidden], [data-timer-done][hidden], [data-timer-presets][hidden], [data-timer-custom][hidden] { display: none !important; }
 
         /* ==========================================
            GYM MASTER — Mobile-First Header
@@ -44,7 +45,7 @@
         @media (max-width: 767px) {
             .gym-mobile-header {
                 display: grid !important;
-                grid-template-columns: 46px minmax(0, 1fr) 46px;
+                grid-template-columns: 46px minmax(0, 1fr) auto;
                 align-items: center;
                 direction: rtl;
                 gap: 8px;
@@ -123,6 +124,8 @@
                 grid-column: 3;
                 justify-self: end;
                 display: flex;
+                align-items: center;
+                gap: 6px;
             }
 
             .gym-mobile-header .theme-toggle {
@@ -621,6 +624,9 @@
 
             <!-- زر الوضع الداكن والفاتح -->
             <div class="gym-mobile-header-theme">
+                @unless(Auth::user()->isSuperAdmin())
+                    @include('components.workout-timer.trigger')
+                @endunless
                 <x-theme-toggle />
             </div>
 
@@ -634,13 +640,19 @@
                     {{ $header }}
                 </div>
 
-                <div class="hidden md:flex shrink-0 items-center">
+                <div class="hidden md:flex shrink-0 items-center gap-2">
+                    @unless(Auth::user()->isSuperAdmin())
+                        @include('components.workout-timer.trigger')
+                    @endunless
                     <x-theme-toggle />
                 </div>
 
             </header>
         @else
-            <header class="hidden md:flex bg-gray-800 border-b border-gray-700 px-6 py-3 justify-end items-center">
+            <header class="hidden md:flex bg-gray-800 border-b border-gray-700 px-6 py-3 justify-end items-center gap-2">
+                @unless(Auth::user()->isSuperAdmin())
+                    @include('components.workout-timer.trigger')
+                @endunless
                 <x-theme-toggle />
             </header>
         @endif
@@ -668,6 +680,10 @@
         <span>جاري التحميل...</span>
     </div>
 </div>
+
+@unless(Auth::user()->isSuperAdmin())
+    @include('components.workout-timer.panel')
+@endunless
 
 <!-- Chatbot & Reminders -->
 <x-chatbot-widget />

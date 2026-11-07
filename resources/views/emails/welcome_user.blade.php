@@ -36,6 +36,10 @@
                                     <td style="padding: 6px 0; color: #ffffff; font-weight: 600;">{{ $user->email }}</td>
                                 </tr>
                                 <tr>
+                                    <td style="padding: 6px 0; color: #94a3b8;"><strong>رقم الهاتف:</strong></td>
+                                    <td style="padding: 6px 0; color: #ffffff; font-weight: 600;">{{ $user->phone }}</td>
+                                </tr>
+                                <tr>
                                     <td style="padding: 6px 0; color: #94a3b8;"><strong>كلمة المرور:</strong></td>
                                     <td style="padding: 6px 0;">
                                         <span style="background-color: #1e293b; color: #10b981; border: 1px solid #059669; padding: 4px 10px; border-radius: 6px; font-family: monospace; font-weight: bold; font-size: 15px;">{{ $plainPassword }}</span>
